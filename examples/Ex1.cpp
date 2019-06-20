@@ -11,30 +11,72 @@
  *
  */
 
+#include <Eigen/Dense>
 #include <bezier/Bezier.hpp>
 #include <iostream>
 #include <memory>
 
 int main(int argc, char* argv[])
 {
-    typedef robotics::DefaultVector<double, 3> DefaultVector;
+    using DefaultVector = robotics::DefaultVector<double, 3>;
     using Bezier = robotics::Bezier<5, double, 3, DefaultVector>;
     DefaultVector p1(1, 2, 3);
     DefaultVector p2(5, 7, 3);
+    DefaultVector p3(5, 11, 8);
+    DefaultVector p4(19, 20, 21);
+    DefaultVector p5(22, 23, 24);
+    DefaultVector p6(26, 27, 28);
+    DefaultVector p7(29, 30, 31);
 
-    Bezier::VecPointType pV(5, p1);
+    Bezier::VecPointType pV(1, p1);
     pV.emplace_back(p2);
+    pV.emplace_back(p3);
+    pV.emplace_back(p4);
+    pV.emplace_back(p5);
+    pV.emplace_back(p6);
 
     Bezier::Ptr b = std::make_shared<Bezier>(pV);
     auto coeffV = b->BINOMIAL_COEFFS;
 
     auto t = b->controlPoints();
+    auto binomialCoeffs_0 = robotics::maths::binomialCoeffs(2);
 
-    auto temp = t[0][0];
+    const Bezier::Tangent tan = b->tangent(0.7);
+    const Bezier::Normal nor = b->normal(0.7);
+    double curvature = b->curvature(0.7);
 
-    auto p = b->operator()(0.9);
+    std::cout << "tangent vector"
+              << "\n";
+    std::cout << tan << "\n";
 
-    std::cout << p << "\n";
+    std::cout << "normal vector"
+              << "\n";
+    std::cout << nor << "\n";
+
+    std::cout << "dot product: " << tan.dot(nor) << "\n";
+
+    std::cout << "curvature: " << curvature << "\n";
+
+    std::cout << "------------------------------------------------"
+              << "\n";
+
+    std::cout << "Original control points"
+              << "\n";
+    for (const auto& p : b->controlPoints()) {
+        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    }
+
+    std::cout << "Trajectory: "
+              << "\n";
+    Bezier::VecPointType trajectory = b->trajectory(5);
+    std::cout << "------------------------------------------------"
+              << "\n";
+    for (auto& p : trajectory) {
+        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    }
+
+    std::cout << "------------------------------------------------"
+              << "\n";
 
     return 0;
 }
