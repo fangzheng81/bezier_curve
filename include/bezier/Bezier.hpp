@@ -16,9 +16,9 @@
 
 #include "Types.hpp"
 #include <Eigen/Core>
-#include <Eigen/Dense>
 #include <algorithm>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -163,13 +163,14 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
 
     Tangent tag = this->tangent(t, normalize);
 
+    Normal nor;
+
     if (POINT_DIMENSION == 2) {
-        Normal nor;
         nor << -(tag[1]), tag[0];
-        return nor;
     }
 
     if (POINT_DIMENSION == 3) {
+        assert(POINT_DIMENSION == 3);
         // Here is the naive implementation for 3d normal
         // Algorithm approach can be Rotation Minimising Frames
         // https://pomax.github.io/bezierinfo/#pointvectors
@@ -180,14 +181,14 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
 
         PointType r = b.cross(tag).normalized();
 
-        Normal nor = r.cross(tag);
+        nor = r.cross(tag);
 
         if (normalize) {
             nor.normalize();
         }
-
-        return nor;
     }
+
+    return nor;
 }
 
 template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>

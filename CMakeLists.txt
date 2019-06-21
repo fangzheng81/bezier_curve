@@ -12,8 +12,10 @@ fetch_googletest(
     )
 
 option(BUILD_EXAMPLES "Option whether to build examples" OFF)
+option(BUILD_VISUALIZATION "Option whether to build examples with visualization" ON)
 
 find_package(Eigen3 QUIET NO_MODULE)
+find_package(VTK QUIET)
 
 add_subdirectory(src)
 
