@@ -118,9 +118,6 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::trajectory(size_t numPoints, doub
     for (size_t i = 0; i <= numPoints; ++i) {
         double t = start + i * delta;
         v.emplace_back(this->operator()(t));
-        if (t == 1) {
-            std::cout << v.back() << "\n";
-        }
     }
 
     return v;
