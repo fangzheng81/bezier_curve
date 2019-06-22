@@ -205,14 +205,17 @@ double Bezier<DEGREE, T, POINT_DIMENSION, Container>::curvature(double t) const
 
     PointType a = derivative(t);
     PointType b = secondDeriv(t);
+    double curvature;
 
     if (POINT_DIMENSION == 2) {
-        return (a[0] * b[1] - a[1] * b[0]) / pow(a.norm(), 3);
+        curvature = (a[0] * b[1] - a[1] * b[0]) / pow(a.norm(), 3);
     }
 
     if (POINT_DIMENSION == 3) {
-        return (a.cross(b)).norm() / pow(a.norm(), 3);
+        curvature = (a.cross(b)).norm() / pow(a.norm(), 3);
     }
+
+    return curvature;
 }
 
 template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
