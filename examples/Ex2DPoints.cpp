@@ -32,15 +32,14 @@
 
 int main(int argc, char* argv[])
 {
-    using DefaultVector = robotics::DefaultVector<double, 3>;
-    using Bezier = robotics::Bezier<5, double, 3, DefaultVector>;
-    DefaultVector p1(1, 2, 3);
-    DefaultVector p2(5, 7, 3);
-    DefaultVector p3(5, 11, 8);
-    DefaultVector p4(19, 20, 21);
-    DefaultVector p5(22, 23, 24);
-    DefaultVector p6(26, 27, 28);
-    DefaultVector p7(29, 30, 31);
+    using DefaultVector = robotics::DefaultVector<double, 2>;
+    using Bezier = robotics::Bezier<5, double, 2, DefaultVector>;
+    DefaultVector p1(1, 2);
+    DefaultVector p2(5, 7);
+    DefaultVector p3(5, 11);
+    DefaultVector p4(19, 20);
+    DefaultVector p5(22, 23);
+    DefaultVector p6(26, 27);
 
     Bezier::VecPointType pV(1, p1);
     pV.emplace_back(p2);
@@ -71,26 +70,26 @@ int main(int argc, char* argv[])
 
     std::cout << "curvature: " << curvature << "\n";
 
-    std::cout << "------------------------------------------------"
-              << "\n";
+    // std::cout << "------------------------------------------------"
+    //           << "\n";
 
-    std::cout << "Original control points"
-              << "\n";
-    for (const auto& p : b->controlPoints()) {
-        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
-    }
+    // std::cout << "Original control points"
+    //           << "\n";
+    // for (const auto& p : b->controlPoints()) {
+    //     std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    // }
 
-    std::cout << "Trajectory: "
-              << "\n";
-    Bezier::VecPointType trajectory = b->trajectory(5);
-    std::cout << "------------------------------------------------"
-              << "\n";
-    for (auto& p : trajectory) {
-        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
-    }
+    // std::cout << "Trajectory: "
+    //           << "\n";
+    // Bezier::VecPointType trajectory = b->trajectory(5);
+    // std::cout << "------------------------------------------------"
+    //           << "\n";
+    // for (auto& p : trajectory) {
+    //     std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    // }
 
-    std::cout << "------------------------------------------------"
-              << "\n";
+    // std::cout << "------------------------------------------------"
+    //           << "\n";
 
     return 0;
 }
