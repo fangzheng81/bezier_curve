@@ -16,7 +16,9 @@
 #ifndef TYPES_HPP_
 #define TYPES_HPP_
 
+#include <cmath>
 #include <cstdlib>
+#include <stdexcept>
 #include <vector>
 
 namespace robotics
@@ -34,7 +36,23 @@ constexpr double FUZZY_EPSILON = 1e-4;
  *  @param k for kCn
  *  @return double
  */
-inline double binomialCoeff(size_t n, size_t k);
+inline double binomialCoeff(size_t n, size_t k)
+{
+    if (n < k) {
+        throw std::out_of_range("n must not be less than k");
+    }
+
+    double res = 1.0;
+
+    if (k > n - k)
+        k = n - k;
+
+    for (size_t i = 0; i < k; ++i) {
+        res = (n - i) * res / (i + 1);
+    }
+
+    return res;
+}
 
 std::vector<double> binomialCoeffs(size_t n);
 

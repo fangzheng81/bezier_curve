@@ -11,31 +11,12 @@
  *
  */
 
-#include "bezier/Bezier.hpp"
-#include <iostream>
+#include <bezier/Types.hpp>
 
 namespace robotics
 {
 namespace maths
 {
-inline double binomialCoeff(size_t n, size_t k)
-{
-    if (n < k) {
-        throw std::out_of_range("n must not be less than k");
-    }
-
-    double res = 1.0;
-
-    if (k > n - k)
-        k = n - k;
-
-    for (size_t i = 0; i < k; ++i) {
-        res = (n - i) * res / (i + 1);
-    }
-
-    return res;
-}
-
 std::vector<double> binomialCoeffs(size_t n)
 {
     std::vector<double> results(n + 1, 0);

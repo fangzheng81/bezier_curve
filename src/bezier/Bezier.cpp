@@ -11,4 +11,4 @@
  *
  */
 
-#include "bezier/Types.hpp"
+#include <bezier/Bezier.hpp>
