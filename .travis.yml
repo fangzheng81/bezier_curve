@@ -1,0 +1,33 @@
+language:
+  - cpp
+
+dist: xenial
+
+sudo: false
+
+compiler:
+  - gcc
+
+before_install:
+  - readonly PARENT_DIR=$(pwd)
+
+# install:
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake
+      - libeigen3-dev
+
+script:
+  - cd ${PARENT_DIR}
+  - mkdir build
+  - cd build
+  - cmake -DBUILD_EXAMPLES=ON ../
+  - cmake --build .
+  - make test
+
+notifications:
+  email: false
