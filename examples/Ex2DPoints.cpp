@@ -18,12 +18,12 @@
 int main(int argc, char* argv[])
 {
     using Bezier = robotics::Bezier<5, double, 2>;
-    Bezier::PointType p1(1, 2);
-    Bezier::PointType p2(5, 7);
-    Bezier::PointType p3(5, 11);
-    Bezier::PointType p4(19, 20);
-    Bezier::PointType p5(22, 23);
-    Bezier::PointType p6(26, 27);
+    Bezier::PointType p1(10.83, 6.44);
+    Bezier::PointType p2(27.99, 9.75);
+    Bezier::PointType p3(43.91, 14.3);
+    Bezier::PointType p4(67.48, 24.84);
+    Bezier::PointType p5(75.34, 46.97);
+    Bezier::PointType p6(65.33, 86.25);
 
     Bezier::VecPointType pV;
     pV.reserve(6);
@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     }
 
     std::cout << "Trajectory: \n";
-    Bezier::VecPointType trajectory = bezier->trajectory(5);
+    Bezier::VecPointType trajectory = bezier->trajectory(20);
     for (const auto& p : trajectory) {
         std::cout << p[0] << "," << p[1] << "\n";
     }
