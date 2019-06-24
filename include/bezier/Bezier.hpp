@@ -28,6 +28,18 @@ namespace robotics
 {
 template <typename T, size_t POINT_DIMENSION> using DefaultVector = Eigen::Matrix<T, POINT_DIMENSION, 1>;
 
+template <typename T, size_t POINT_DIMENSION>
+DefaultVector<T, POINT_DIMENSION> cross(const DefaultVector<T, POINT_DIMENSION>& v1,
+                                        const DefaultVector<T, POINT_DIMENSION>& v2)
+{
+    throw std::out_of_range("this method is for point dimensions of 3 only");
+}
+
+template <typename T> DefaultVector<T, 3> cross(const DefaultVector<T, 3>& v1, const DefaultVector<T, 3>& v2)
+{
+    return v1.cross(v2);
+}
+
 template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container = DefaultVector<T, POINT_DIMENSION>>
 class Bezier
 {
@@ -179,9 +191,9 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
 
         PointType b = (tag + secondDeriv(t)).normalized();
 
-        PointType r = b.cross(tag).normalized();
+        PointType r = cross<T, POINT_DIMENSION>(b, tag).normalized();
 
-        nor = r.cross(tag);
+        nor = cross<T, POINT_DIMENSION>(r, tag).normalized();
 
         if (normalize) {
             nor.normalize();
@@ -212,7 +224,7 @@ double Bezier<DEGREE, T, POINT_DIMENSION, Container>::curvature(double t) const
     }
 
     if (POINT_DIMENSION == 3) {
-        curvature = (a.cross(b)).norm() / pow(a.norm(), 3);
+        curvature = (cross<T, POINT_DIMENSION>(a, b).norm() / pow(a.norm(), 3));
     }
 
     return curvature;
