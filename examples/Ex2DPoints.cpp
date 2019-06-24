@@ -15,21 +15,6 @@
 #include <iostream>
 #include <memory>
 
-#ifdef BUILD_VISUALIZATION
-#include <vtkSmartPointer.h>
-#include <vtkVersion.h>
-
-#include <vtkChartXY.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkFloatArray.h>
-#include <vtkPlotPoints.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkTable.h>
-#endif
-
 int main(int argc, char* argv[])
 {
     using Bezier = robotics::Bezier<5, double, 2>;
@@ -40,7 +25,10 @@ int main(int argc, char* argv[])
     Bezier::PointType p5(22, 23);
     Bezier::PointType p6(26, 27);
 
-    Bezier::VecPointType pV(1, p1);
+    Bezier::VecPointType pV;
+    pV.reserve(6);
+
+    pV.emplace_back(p1);
     pV.emplace_back(p2);
     pV.emplace_back(p3);
     pV.emplace_back(p4);
@@ -49,9 +37,6 @@ int main(int argc, char* argv[])
 
     Bezier::Ptr bezier = std::make_shared<Bezier>(pV);
     auto coeffV = bezier->BINOMIAL_COEFFS;
-
-    auto t = bezier->controlPoints();
-    auto binomialCoeffs_0 = robotics::maths::binomialCoeffs(2);
 
     const Bezier::Tangent tan = bezier->tangent(0.7);
     const Bezier::Normal nor = bezier->normal(0.7);

@@ -15,7 +15,7 @@
 #define BEZIER_HPP_
 
 #include "Types.hpp"
-#include <Eigen/Core>
+#include <Eigen/Eigen>
 #include <algorithm>
 #include <cstdlib>
 #include <exception>
