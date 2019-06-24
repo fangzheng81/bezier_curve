@@ -10,6 +10,10 @@ compiler:
 
 before_install:
   - readonly PARENT_DIR=$(pwd)
+  # build from source latest eigen
+  - git clone https://github.com/eigenteam/eigen-git-mirror.git
+  - cd eigen-git-mirror
+  - mkdir build && cd build && cmake ../ && make && sudo make install
 
 # install:
 
@@ -19,7 +23,6 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - cmake
-      - libeigen3-dev
 
 script:
   - cd ${PARENT_DIR}
