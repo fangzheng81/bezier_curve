@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/xmba15/bezier_curve.svg?branch=master)](https://travis-ci.org/xmba15/bezier_curve/builds)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Generic Bezier Curve Library #
 - Generic Bezier Curve Library that supports control points of arbitary dimension numbers. (2D and 3D for normal, curvature calculations).
