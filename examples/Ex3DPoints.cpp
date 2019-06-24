@@ -40,23 +40,23 @@ int main(int argc, char* argv[])
 
     const Bezier::Tangent tan = bezier->tangent(0.7);
     const Bezier::Normal nor = bezier->normal(0.7);
-    // double curvature = bezier->curvature(0.7);
+    double curvature = bezier->curvature(0.7);
 
-    // std::cout << "tangent vector: \n" << tan << "\n";
-    // std::cout << "normal vector: \n" << nor << "\n";
-    // std::cout << "dot product: " << tan.dot(nor) << "\n";
-    // std::cout << "curvature: " << curvature << "\n";
+    std::cout << "tangent vector: \n" << tan << "\n";
+    std::cout << "normal vector: \n" << nor << "\n";
+    std::cout << "dot product: " << tan.dot(nor) << "\n";
+    std::cout << "curvature: " << curvature << "\n";
 
-    // std::cout << "Original control points: \n";
-    // for (const auto& p : bezier->controlPoints()) {
-    //     std::cout << p[0] << "," << p[1] << "\n";
-    // }
+    std::cout << "Original control points: \n";
+    for (const auto& p : bezier->controlPoints()) {
+        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    }
 
-    // std::cout << "Trajectory: \n";
-    // Bezier::VecPointType trajectory = bezier->trajectory(5);
-    // for (const auto& p : trajectory) {
-    //     std::cout << p[0] << "," << p[1] << "\n";
-    // }
+    std::cout << "Trajectory: \n";
+    Bezier::VecPointType trajectory = bezier->trajectory(5);
+    for (const auto& p : trajectory) {
+        std::cout << p[0] << "," << p[1] << "," << p[2] << "\n";
+    }
 
     return 0;
 }

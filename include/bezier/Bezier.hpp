@@ -32,12 +32,14 @@ template <typename T, size_t POINT_DIMENSION>
 DefaultVector<T, POINT_DIMENSION> cross(const DefaultVector<T, POINT_DIMENSION>& v1,
                                         const DefaultVector<T, POINT_DIMENSION>& v2)
 {
-    throw std::out_of_range("this method is for point dimensions of 3 only");
-}
+    if (POINT_DIMENSION != 3) {
+        throw std::out_of_range("this method is for point of 3 dimensions");
+    }
 
-template <typename T> DefaultVector<T, 3> cross(const DefaultVector<T, 3>& v1, const DefaultVector<T, 3>& v2)
-{
-    return v1.cross(v2);
+    DefaultVector<T, POINT_DIMENSION> result;
+    result << (v1[1] * v2[2] - v1[2] * v2[1]), (v1[2] * v2[0] - v1[0] * v2[2]), (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    return result;
 }
 
 template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container = DefaultVector<T, POINT_DIMENSION>>
