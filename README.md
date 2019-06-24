@@ -6,7 +6,7 @@
 - Class of control point Container is built on top of Eigen Matrix; but can possibly be replaced with user-defined Point Container Class (which is quite a tedious task if starting from 0).
 
 ## Dependencies ##
-- [Eigen](http://eigen.tuxfamily.org)
+- [Eigen](http://eigen.tuxfamily.org)(**Current build with cmake was tested on Ubuntu 18.04. Build on lower version of Ubuntu OS might require modification of CMake to find Eigen OR manually build latest Eigen from source.**)
 
 ## General Usage ##
 ```cpp
