@@ -58,5 +58,7 @@ int main(int argc, char* argv[])
         std::cout << p[0] << "," << p[1] << "\n";
     }
 
+    std::cout << *bezier<< "\n";
+
     return 0;
 }

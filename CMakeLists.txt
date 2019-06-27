@@ -23,5 +23,13 @@ if(${BUILD_EXAMPLES})
   add_subdirectory(examples)
 endif(${BUILD_EXAMPLES})
 
+option(WITH_DEBUG "Enable debug" OFF)
+if(WITH_DEBUG)
+  target_compile_definitions(${ProjectTargetLibName}
+    PUBLIC
+    WITH_DEBUG
+  )
+endif(WITH_DEBUG)
+
 enable_testing()
 add_subdirectory(tests)

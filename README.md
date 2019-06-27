@@ -8,6 +8,17 @@
 ## Dependencies ##
 - [Eigen](http://eigen.tuxfamily.org)(**Current build with cmake was tested on Ubuntu 18.04. Build on lower version of Ubuntu OS might require modification of CMake to find Eigen OR manually build latest Eigen from source.**)
 
+## How to Build ##
+```bash
+cd /path/to/bezier_curve
+mkdir build && cd build
+cmake ../ && cmake --build .
+```
+
+### Build Options ###
+ - WITH_DEBUG=ON/OFF(default: OFF) : whether to enable debug
+ - BUILD_EXAMPLES=ON/OFF(default: OFF) : whether to enable build examples
+
 ## General Usage ##
 ```cpp
 \\ To be added
