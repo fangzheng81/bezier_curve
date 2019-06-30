@@ -1,22 +1,28 @@
-set(EX1_NAME "Ex2DPoints")
-set(EX2_NAME "Ex3DPoints")
-
-add_executable(
-  ${EX1_NAME}
-  ${CMAKE_CURRENT_LIST_DIR}/Ex2DPoints.cpp
+list(APPEND EXAMPLES
+  "Ex2DPoints"
+  "Ex3DPoints"
 )
 
-target_link_libraries(
-  ${EX1_NAME}
+list(APPEND USE_LIBRARIES
   bezier
 )
 
-add_executable(
-  ${EX2_NAME}
-  ${CMAKE_CURRENT_LIST_DIR}/Ex3DPoints.cpp
-)
+function(__build_example example_name use_libraries)
+  list(LENGTH use_libraries LIBRARIES_LENGTH)
 
-target_link_libraries(
-  ${EX2_NAME}
-  bezier
-)
+  add_executable(
+    ${example_name}
+    ${CMAKE_CURRENT_LIST_DIR}/${example_name}.cpp
+  )
+
+  if (LIBRARIES_LENGTH GREATER 0)
+    target_link_libraries(
+      ${example_name}
+      ${use_libraries}
+    )
+  endif()
+endfunction(__build_example example_name use_libraries)
+
+foreach(EXAMPLE ${EXAMPLES})
+  __build_example(${EXAMPLE} ${USE_LIBRARIES})
+endforeach(EXAMPLE)
