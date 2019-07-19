@@ -108,7 +108,7 @@ class Bezier
         powerBasisCoeffs.reserve(DEGREE + 1);
 
         for (size_t i = 0; i < HEIGHT; ++i) {
-            PointType curPoints = PointType::Zero();
+            PointType curPoints = static_cast<PointType>(PointType::Zero());
             for (size_t j = 0; j < WIDTH; ++j) {
                 curPoints += curMatrix[i * WIDTH + j] * bezier.controlPoints()[j];
             }
@@ -271,9 +271,10 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
 
         Bezier<DEGREE - 2, T, POINT_DIMENSION, Container> secondDeriv = this->derivative().derivative();
 
-        PointType b = (tag + secondDeriv(t)).normalized();
+        // cast into PointType type in case PointType inherits from Eigen type
+        PointType b = static_cast<PointType>((tag + secondDeriv(t)).normalized());
 
-        PointType r = this->cross(b, tag).normalized();
+        PointType r = static_cast<PointType>(this->cross(b, tag).normalized());
 
         nor = this->cross(r, tag).normalized();
 

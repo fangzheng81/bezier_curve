@@ -1,6 +1,7 @@
 list(APPEND EXAMPLES
   "Ex2DPoints"
   "Ex3DPoints"
+  "ExUserDefinedPointType"
 )
 
 list(APPEND USE_LIBRARIES
