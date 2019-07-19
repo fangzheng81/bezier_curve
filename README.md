@@ -6,7 +6,8 @@
 - Class of control point Container is built on top of Eigen Matrix; but can possibly be replaced with user-defined Point Container Class (which is quite a tedious task if starting from 0).
 
 ## Dependencies ##
-- [Eigen](http://eigen.tuxfamily.org)(**Current build with cmake was tested on Ubuntu 18.04. Build on lower version of Ubuntu OS might require modification of CMake to find Eigen OR manually build latest Eigen from source.**)
+- [Eigen](http://eigen.tuxfamily.org) : **Current build with cmake was tested on Ubuntu 18.04. Build on lower version of Ubuntu OS might require modification of CMake to find Eigen OR manually build latest Eigen from source.**
+- [Doxygen](http://www.doxygen.nl/index.html) : Only used for building documentations. The lack of doxygen does not affect the building of this library.
 
 ## How to Build ##
 ```bash
@@ -18,11 +19,9 @@ cmake ../ && cmake --build .
 ### Build Options ###
  - WITH_DEBUG=ON/OFF(default: OFF) : whether to enable debug
  - BUILD_EXAMPLES=ON/OFF(default: OFF) : whether to enable build examples
-
+ - BUILD_DOC=ON/OFF(default: ON) : whether to build doc (by doxygen) or not
 ## General Usage ##
-```cpp
-\\ To be added
-```
+See [Examples](examples)
 
 ## Examples ##
 ### 2d points ##
