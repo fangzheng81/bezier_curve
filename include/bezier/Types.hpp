@@ -58,14 +58,14 @@ std::vector<double> binomialCoeffs(size_t n);
 
 std::vector<double> polynomialCoeffs(size_t n, double t);
 
-template <typename T> bool fuzzyEquals(T val, T correctVal)
+template <typename T> bool fuzzyEquals(const T val, const T correctVal, const double epsilon = FUZZY_EPSILON)
 {
-    return std::abs(val - correctVal) <= static_cast<T>(FUZZY_EPSILON);
+    return std::abs(val - correctVal) <= static_cast<T>(epsilon);
 }
 
-template <typename T> bool isWithinZeroAndOne(T x)
+template <typename T> bool isWithinZeroAndOne(const T x, const double epsilon = FUZZY_EPSILON)
 {
-    return x >= -static_cast<T>(FUZZY_EPSILON) && x <= static_cast<T>(1.0 + FUZZY_EPSILON);
+    return x >= -static_cast<T>(epsilon) && x <= static_cast<T>(1.0 + epsilon);
 }
 }  // namespace maths
 }  // namespace robotics
