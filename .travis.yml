@@ -8,6 +8,10 @@ sudo: false
 compiler:
   - gcc
 
+branches:
+  only:
+    - master
+
 before_install:
   - readonly PARENT_DIR=$(pwd)
   # build from source latest eigen
