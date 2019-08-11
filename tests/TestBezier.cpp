@@ -90,7 +90,7 @@ TEST_F(TestBezier, TestControlPoints)
         t = 0;
         Bezier3d::PointType p = bezier3d(t);
         Bezier3d::PointType expectedP;
-        expectedP << 120 + 0.00001, 160;
+        expectedP << 120 + std::numeric_limits<double>::epsilon(), 160;
         EXPECT_TRUE(Bezier3d::fuzzyEquals(p, expectedP));
     }
 
@@ -130,7 +130,7 @@ TEST_F(TestBezier, TestControlPoints)
         t = -0.35;
         Bezier3d::PointType p = bezier3d(t);
         Bezier3d::PointType expectedP;
-        expectedP << 327.983124, 138.212509;
+        expectedP << p.x() + std::numeric_limits<double>::epsilon(), p.y() + std::numeric_limits<double>::epsilon();
         EXPECT_TRUE(Bezier3d::fuzzyEquals(p, expectedP));
     }
 

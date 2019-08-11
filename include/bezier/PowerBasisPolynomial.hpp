@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <bezier/Types.hpp>
 #include <cassert>
 #include <deque>
 #include <iomanip>
@@ -82,7 +83,7 @@ template <typename DATA_TYPE> const size_t PowerBasisPolynomial<DATA_TYPE>::degr
 
 template <typename DATA_TYPE> void PowerBasisPolynomial<DATA_TYPE>::removeLeadingZeros()
 {
-    while (this->_coeffs.back() == 0 && this->_coeffs.size() > 1) {
+    while (fuzzyEquals(this->_coeffs.back(), 0.0) && this->_coeffs.size() > 1) {
         this->_coeffs.pop_back();
     }
 }

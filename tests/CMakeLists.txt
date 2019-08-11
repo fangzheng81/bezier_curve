@@ -1,6 +1,7 @@
 add_executable(
   unit_tests
      TestBezier.cpp
+     TestPolynomial.cpp
 )
 
 target_link_libraries(

@@ -16,8 +16,10 @@
 #ifndef TYPES_HPP_
 #define TYPES_HPP_
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -58,14 +60,15 @@ std::vector<double> binomialCoeffs(size_t n);
 
 std::vector<double> polynomialCoeffs(size_t n, double t);
 
-template <typename T> bool fuzzyEquals(const T val, const T correctVal, const double epsilon = FUZZY_EPSILON)
+template <typename T> bool fuzzyEquals(const T val, const T correctVal)
 {
-    return std::abs(val - correctVal) <= static_cast<T>(epsilon);
+    const T maxXYOne = std::max({static_cast<T>(1.0f), std::fabs(val), std::fabs(correctVal)});
+    return std::fabs(val - correctVal) <= std::numeric_limits<T>::epsilon() * maxXYOne;
 }
 
-template <typename T> bool isWithinZeroAndOne(const T x, const double epsilon = FUZZY_EPSILON)
+template <typename T> bool isWithinZeroAndOne(const T x)
 {
-    return x >= -static_cast<T>(epsilon) && x <= static_cast<T>(1.0 + epsilon);
+    return x >= -std::numeric_limits<T>::epsilon() && x <= (1.0f + std::numeric_limits<T>::epsilon());
 }
 }  // namespace maths
 }  // namespace robotics
