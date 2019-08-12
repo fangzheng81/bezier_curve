@@ -2,7 +2,7 @@ list(APPEND EXAMPLES
   "Ex2DPoints"
   "Ex3DPoints"
   "ExUserDefinedPointType"
-  "ExPolynomial"
+  "ExPolynomial1D"
 )
 
 list(APPEND PUBLIC_LIBS

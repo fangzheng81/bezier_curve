@@ -1,5 +1,5 @@
 /**
- * @file    TestPolynomial.cpp
+ * @file    TestPolynomial1D.cpp
  *
  * @brief   test polynomial
  *
@@ -12,7 +12,7 @@
  */
 
 #include "gtest/gtest.h"
-#include <bezier/PowerBasisPolynomial.hpp>
+#include <bezier/PowerBasisPolynomial1D.hpp>
 #include <ctime>
 
 class TestPolynomial : public ::testing::Test
@@ -36,7 +36,7 @@ class TestPolynomial : public ::testing::Test
 
 TEST_F(TestPolynomial, TestInitialization)
 {
-    using Polynomial = robotics::maths::PowerBasisPolynomial<double>;
+    using Polynomial = robotics::maths::PowerBasisPolynomial1D<double>;
 
     {
         std::vector<double> coeffs{1.9, 3.4, 5.7};
