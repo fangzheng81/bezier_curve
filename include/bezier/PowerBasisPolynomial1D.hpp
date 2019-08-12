@@ -15,6 +15,7 @@
 #include <bezier/Types.hpp>
 #include <cassert>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -36,13 +37,19 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
     const size_t degree() const;
 
+    bool isZero() const;
+
     PowerBasisPolynomial1D add(const PowerBasisPolynomial1D& other) const;
 
     PowerBasisPolynomial1D multiply(const PowerBasisPolynomial1D& other) const;
 
+    PowerBasisPolynomial1D multiply(const DATA_TYPE scalar) const;
+
     PowerBasisPolynomial1D derivative() const;
 
     QuotientRemainder divide(const PowerBasisPolynomial1D& other) const;
+
+    std::vector<PowerBasisPolynomial1D> generateSturmSequences() const;
 
     friend std::ostream& operator<<(std::ostream& os, const PowerBasisPolynomial1D& polynomial)
     {
@@ -98,6 +105,11 @@ template <typename DATA_TYPE> const size_t PowerBasisPolynomial1D<DATA_TYPE>::de
     return this->_coeffs.size() - 1;
 }
 
+template <typename DATA_TYPE> bool PowerBasisPolynomial1D<DATA_TYPE>::isZero() const
+{
+    return (this->degree() == 0 && fuzzyEquals(this->_coeffs.front(), 0.0));
+}
+
 template <typename DATA_TYPE>
 PowerBasisPolynomial1D<DATA_TYPE>
 PowerBasisPolynomial1D<DATA_TYPE>::add(const PowerBasisPolynomial1D<DATA_TYPE>& other) const
@@ -139,6 +151,18 @@ PowerBasisPolynomial1D<DATA_TYPE>::multiply(const PowerBasisPolynomial1D<DATA_TY
     return PowerBasisPolynomial1D<DATA_TYPE>(resultCoeffs);
 }
 
+template <typename DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE>::multiply(const DATA_TYPE scalar) const
+{
+    std::vector<DATA_TYPE> resultCoeffs;
+    resultCoeffs.reserve(this->_coeffs.size());
+
+    std::transform(this->_coeffs.begin(), this->_coeffs.end(), std::back_inserter(resultCoeffs),
+                   [&scalar](const DATA_TYPE val) { return val * scalar; });
+
+    return PowerBasisPolynomial1D<DATA_TYPE>(resultCoeffs);
+}
+
 template <typename DATA_TYPE = double>
 PowerBasisPolynomial1D<DATA_TYPE> multiplyPolynomials(const PowerBasisPolynomial1D<DATA_TYPE>& p1,
                                                       const PowerBasisPolynomial1D<DATA_TYPE>& p2)
@@ -167,8 +191,13 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
 {
     // naive approach for now
     // [source](http://web.cs.iastate.edu/~cs577/handouts/polydivide.pdf)
-    if (other.degree() == 0 && fuzzyEquals(other._coeffs.front(), 0.0)) {
-        throw std::runtime_error("cannot divide by 0");
+    if (other.degree() == 0) {
+        if (fuzzyEquals(other._coeffs.front(), 0.0)) {
+            throw std::runtime_error("cannot divide by 0");
+        } else {
+            return std::make_pair(this->multiply(1.0 / other._coeffs.front()),
+                                  PowerBasisPolynomial1D(std::vector<DATA_TYPE>{0}));
+        }
     }
 
     if (this->degree() < other.degree()) {
@@ -192,6 +221,27 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     std::copy(N.begin(), N.begin() + other.degree(), std::back_inserter(r));
 
     return std::make_pair(PowerBasisPolynomial1D(q), PowerBasisPolynomial1D(r));
+}
+
+template <typename DATA_TYPE>
+std::vector<PowerBasisPolynomial1D<DATA_TYPE>> PowerBasisPolynomial1D<DATA_TYPE>::generateSturmSequences() const
+{
+    assert(this->_coeffs.size() > 0);
+
+    std::vector<PowerBasisPolynomial1D> result;
+    result.emplace_back(*this);
+    if (this->_coeffs.size() == 1) {
+        return result;
+    }
+
+    result.emplace_back(this->derivative());
+    PowerBasisPolynomial1D remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
+    while (!remainderPoly.isZero()) {
+        result.emplace_back(remainderPoly.multiply(-1));
+        remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
+    }
+
+    return result;
 }
 
 template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::removeLeadingZeros()

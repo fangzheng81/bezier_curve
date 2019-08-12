@@ -39,5 +39,10 @@ int main(int argc, char* argv[])
     std::cout << qr.first << "\n";
     std::cout << qr.second << "\n";
 
+    auto sturmSeq = polynomial0.generateSturmSequences();
+    for (const auto& seq : sturmSeq) {
+        std::cout << seq << "\n";
+    }
+
     return 0;
 }
