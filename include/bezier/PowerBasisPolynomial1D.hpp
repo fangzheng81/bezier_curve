@@ -29,7 +29,7 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
  public:
     using QuotientRemainder = std::pair<PowerBasisPolynomial1D, PowerBasisPolynomial1D>;
 
-    explicit PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs);
+    explicit PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized = false);
 
     DATA_TYPE operator()(const DATA_TYPE t) const;
 
@@ -48,6 +48,8 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
     PowerBasisPolynomial1D derivative() const;
 
     QuotientRemainder divide(const PowerBasisPolynomial1D& other) const;
+
+    void normalize();
 
     friend std::ostream& operator<<(std::ostream& os, const PowerBasisPolynomial1D& polynomial)
     {
@@ -77,10 +79,14 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 };
 
 template <typename DATA_TYPE>
-PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs) : _coeffs(coeffs)
+PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized)
+    : _coeffs(coeffs)
 {
     assert(this->_coeffs.size() > 0);
     this->removeLeadingZeros();
+    if (normalized) {
+        this->normalize();
+    }
 }
 
 template <typename DATA_TYPE> DATA_TYPE PowerBasisPolynomial1D<DATA_TYPE>::operator()(const DATA_TYPE t) const
@@ -219,6 +225,15 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     std::copy(N.begin(), N.begin() + other.degree(), std::back_inserter(r));
 
     return std::make_pair(PowerBasisPolynomial1D(q), PowerBasisPolynomial1D(r));
+}
+
+template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::normalize()
+{
+    const DATA_TYPE biggestDegCoeffAbs = std::fabs(this->_coeffs.back());
+
+    for (auto it = this->_coeffs.begin(); it != this->_coeffs.end(); ++it) {
+        *it /= biggestDegCoeffAbs;
+    }
 }
 
 template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::removeLeadingZeros()

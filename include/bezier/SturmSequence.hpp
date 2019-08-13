@@ -222,19 +222,19 @@ std::vector<PowerBasisPolynomial1D<DATA_TYPE>> SturmSequence<DATA_TYPE>::generat
 
     std::vector<PowerBasisPolynomial1D<DATA_TYPE>> result;
 
-    result.emplace_back(this->_polynomial);
+    result.emplace_back(this->_polynomial.coeffs(), true);
 
     if (this->_polynomial.coeffs().size() == 1) {
         return result;
     }
 
-    result.emplace_back(this->_polynomial.derivative());
+    result.emplace_back(this->_polynomial.derivative().coeffs(), true);
 
     PowerBasisPolynomial1D<DATA_TYPE> remainderPoly =
         (std::prev(std::prev(result.end()))->divide(result.back())).second;
 
     while (!remainderPoly.isZero()) {
-        result.emplace_back(remainderPoly.multiply(-1));
+        result.emplace_back(remainderPoly.multiply(-1).coeffs(), true);
         remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
     }
 
