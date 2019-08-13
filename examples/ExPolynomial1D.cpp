@@ -12,6 +12,7 @@
  */
 
 #include <bezier/PowerBasisPolynomial1D.hpp>
+#include <bezier/SturmSequence.hpp>
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -39,8 +40,9 @@ int main(int argc, char* argv[])
     std::cout << qr.first << "\n";
     std::cout << qr.second << "\n";
 
-    auto sturmSeq = polynomial0.generateSturmSequences();
-    for (const auto& seq : sturmSeq) {
+    robotics::maths::SturmSequence<double> ss(polynomial0);
+
+    for (const auto& seq : ss.sturmSeqs()) {
         std::cout << seq << "\n";
     }
 

@@ -31,7 +31,7 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
     explicit PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs);
 
-    DATA_TYPE operator()(const DATA_TYPE t);
+    DATA_TYPE operator()(const DATA_TYPE t) const;
 
     const std::vector<DATA_TYPE>& coeffs() const;
 
@@ -48,8 +48,6 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
     PowerBasisPolynomial1D derivative() const;
 
     QuotientRemainder divide(const PowerBasisPolynomial1D& other) const;
-
-    std::vector<PowerBasisPolynomial1D> generateSturmSequences() const;
 
     friend std::ostream& operator<<(std::ostream& os, const PowerBasisPolynomial1D& polynomial)
     {
@@ -85,7 +83,7 @@ PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const std::vector<DATA
     this->removeLeadingZeros();
 }
 
-template <typename DATA_TYPE> DATA_TYPE PowerBasisPolynomial1D<DATA_TYPE>::operator()(const DATA_TYPE t)
+template <typename DATA_TYPE> DATA_TYPE PowerBasisPolynomial1D<DATA_TYPE>::operator()(const DATA_TYPE t) const
 {
     DATA_TYPE result = 0.0;
     for (size_t i = 0; i < this->_coeffs.size(); ++i) {
@@ -221,27 +219,6 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     std::copy(N.begin(), N.begin() + other.degree(), std::back_inserter(r));
 
     return std::make_pair(PowerBasisPolynomial1D(q), PowerBasisPolynomial1D(r));
-}
-
-template <typename DATA_TYPE>
-std::vector<PowerBasisPolynomial1D<DATA_TYPE>> PowerBasisPolynomial1D<DATA_TYPE>::generateSturmSequences() const
-{
-    assert(this->_coeffs.size() > 0);
-
-    std::vector<PowerBasisPolynomial1D> result;
-    result.emplace_back(*this);
-    if (this->_coeffs.size() == 1) {
-        return result;
-    }
-
-    result.emplace_back(this->derivative());
-    PowerBasisPolynomial1D remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
-    while (!remainderPoly.isZero()) {
-        result.emplace_back(remainderPoly.multiply(-1));
-        remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
-    }
-
-    return result;
 }
 
 template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::removeLeadingZeros()

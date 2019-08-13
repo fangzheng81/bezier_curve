@@ -68,8 +68,19 @@ template <typename T> bool fuzzyEquals(const T val, const T correctVal)
 
 template <typename T> bool isWithinZeroAndOne(const T x)
 {
-    return x >= -std::numeric_limits<T>::epsilon() && x <= (1.0f + std::numeric_limits<T>::epsilon());
+    return x >= -std::numeric_limits<T>::epsilon() && x <= (static_cast<T>(1.0f) + std::numeric_limits<T>::epsilon());
 }
+
+template <typename T> constexpr int sgn(const T& a, const T& b) noexcept
+{
+    return (a > b) - (a < b);
+}
+
+template <typename T> constexpr int sgn(const T& a) noexcept
+{
+    return sgn(a, T(0));
+}
+
 }  // namespace maths
 }  // namespace robotics
 
