@@ -11,10 +11,8 @@
  *
  */
 
-#ifndef BEZIER_HPP_
-#define BEZIER_HPP_
+#pragma once
 
-#include "Types.hpp"
 #include <Eigen/Eigen>
 #include <algorithm>
 #include <cstdlib>
@@ -23,6 +21,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "bezier/PowerBasisPolynomial1D.hpp"
+#include "bezier/Types.hpp"
 
 #ifdef WITH_DEBUG
 #define ENABLE_DEBUG 1
@@ -37,40 +38,130 @@ namespace robotics
  *  b_i is control points of arbitary dimensions; in this implementation, we focus more on 2d and 3d.
  *  B_(i,n)(t) is Bernstein polynomial.
  *  n is the degree of Bezier curve.
- *  number of control points must be equal to the degree plus 1
- *  t is the parameter of the curve, the range of t is often in the interval of [0,1], so that a new point approximated
- *  from 2 points A, B will always stay somewhat between A and B.
  *  More details should be found here: http://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node2.html
- *  In this implementation, for convienience (or laziness), Eigen Matrix is used as the container of control points.
  */
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T, POINT_DIMENSION, 1>>
-class Bezier
+template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T, POINT_DIMENSION, 1>> class Bezier
 {
  public:
-    static const std::vector<double> BINOMIAL_COEFFS;
-    static constexpr int degree = DEGREE;
+    static constexpr T TOLERANCE = 10e-7;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    //! type of control points
     using PointType = Container;
+
+    //! type of normal vector
     using Normal = PointType;
+
+    //! type of tangent vector
     using Tangent = PointType;
+
+    //! vector of control points
     using VecPointType = std::vector<PointType, Eigen::aligned_allocator<PointType>>;
+
+    //! shared pointer of Bezier type
     using Ptr = std::shared_ptr<Bezier>;
 
-    Bezier();
-    explicit Bezier(const VecPointType& controlPoints);
+    /**
+     *  @brief Bezier Constructor
+     *
+     *  member variable of control points will be initialized with vector of default control points (of zeros)
+     *
+     *  @param degree of the Bezier curve
+     */
+    explicit Bezier(size_t degree, const T tolerance = TOLERANCE);
+
+    /**
+     *  @brief Bezier Constructor
+     *
+     *  @param degree of the Bezier curve
+     *  @param controlPoints control points to initialize member variable
+     */
+    Bezier(size_t degree, const VecPointType& controlPoints, const T tolerance = TOLERANCE);
+
+    /**
+     *  @brief constant getter of control point member variable
+     *
+     *  @return const VecPointType&
+     */
     const VecPointType& controlPoints() const;
-    VecPointType& controlPoints();
+
+    /**
+     *  @brief getter for binomial coefficients
+     *
+     *  @return consts std::vector<double>&
+     */
+    const std::vector<double>& binomialCoeffs() const;
+
+    /**
+     *  @brief Bezier curve (trajectory) approximated from control points
+     *
+     *  @param numPoints number of points on the trajectory. notice that the first and the last points of this
+     *  trajectory are the first and the last control points.
+     *  @param start the lower bound range of t
+     *  @param end the upper bound range of t
+     *  @return VecPointType
+     */
     VecPointType trajectory(size_t numPoints, double start = 0, double end = 1);
 
-    Bezier<DEGREE - 1, T, POINT_DIMENSION, Container> derivative() const;
+    /**
+     *  @brief the derivative of current Bezier class
+     *
+     *  @return Bezier
+     */
+    Bezier<T, POINT_DIMENSION, Container> derivative() const;
+
+    /**
+     *  @brief the tangent vector at t
+     *
+     *  @param t t value
+     *  @param normalize boolean value to check whether to normalize the result or not
+     *  @return Tangent
+     */
     Tangent tangent(double t, bool normalize = true) const;
+
+    /**
+     *  @brief the normal vector at t
+     *
+     *  @param t t value
+     *  @param normalize boolean value to check whether to normalize the result or not
+     *  @return Normal
+     */
     Normal normal(double t, bool normalize = true) const;
+
+    /**
+     *  @brief the curvature at t
+     *
+     *  @param t t value
+     *  @return double
+     */
     double curvature(double t) const;
 
-    double operator()(size_t axis, double t);
-    PointType operator()(double t);
-    static bool fuzzyEquals(PointType val, PointType correctVal);
+    /**
+     *  @brief functor to calculate the value of approximated point on Bezier curve at t on the targeted axis
+     *
+     *  @param axis axis of the point to calculate
+     *  @param t t value
+     *  @return double
+     */
+    double operator()(size_t axis, double t) const;
+
+    /**
+     *  @brief functor to calculate the approximated point on Bezier curve at t
+     *
+     *  @param t t value
+     *  @return PointType
+     */
+    PointType operator()(double t) const;
+
+    /**
+     *  @brief static function to check if two PointTypes are nearly equal
+     *
+     *  @param val first PointType
+     *  @param correctVal second PointTypes
+     *  @return bool
+     */
+    static bool fuzzyEquals(const PointType& val, const PointType& correctVal, const T epsilon = TOLERANCE);
 
     /**
      *  @brief function to calculate the curve Matrix to transform between a Bezier Bases and a Power Basis
@@ -81,16 +172,29 @@ class Bezier
      *  The matrix representation A(mxm) is defined as b_vector = A * a_vector (here m = DEGREE+1)
      *  We have, A_ij = jCi / jCn for i >= j; 0 otherwise
      *
-     *  @return std::array<double, (DEGREE + 1) * (DEGREE + 1)>
+     *  @return std::vector<double>
      */
-    std::array<double, (DEGREE + 1) * (DEGREE + 1)> curveMatrix() const;
+    std::vector<double> curveMatrix() const;
 
     /**
      *  @brief function to calculate the inverse matrix of curve Matrix A
      *
-     *  @return std::array<double, (DEGREE + 1) * (DEGREE + 1)>
+     *  @return std::vector<double>
      */
-    std::array<double, (DEGREE + 1) * (DEGREE + 1)> inverseCurveMatrix() const;
+    std::vector<double> inverseCurveMatrix() const;
+
+    /**
+     *  @brief function to extract point data value on each axis
+     *  Supposed a PointType p is a R(n) point. Data value of p on axis i (i = (0,n-1)) is value p[i]
+     *  @param vecPointType vector of points to extract values
+     *
+     *  @return array of axis-wise point data value vector
+     */
+    std::array<std::vector<T>, POINT_DIMENSION> extractDataEachAxis(const VecPointType& vecPointType) const;
+
+    std::vector<maths::PowerBasisPolynomial1D<T>> powerBasisForm() const;
+
+    double closestPointToCurve(const PointType& outliner) const;
 
     /**
      *  @brief overloading operator<< to quickly print out the power basis form of bezier curve
@@ -98,70 +202,40 @@ class Bezier
      */
     friend std::ostream& operator<<(std::ostream& os, const Bezier& bezier)
     {
-        assert(bezier.controlPoints().size() == DEGREE + 1);
-
-        const size_t WIDTH = DEGREE + 1, HEIGHT = DEGREE + 1;
-
-        const std::array<double, (DEGREE + 1) * (DEGREE + 1)> curMatrix = bezier.inverseCurveMatrix();
-
-        VecPointType powerBasisCoeffs;
-        powerBasisCoeffs.reserve(DEGREE + 1);
-
-        for (size_t i = 0; i < HEIGHT; ++i) {
-            PointType curPoints = static_cast<PointType>(PointType::Zero());
-            for (size_t j = 0; j < WIDTH; ++j) {
-                curPoints += curMatrix[i * WIDTH + j] * bezier.controlPoints()[j];
-            }
-            powerBasisCoeffs.emplace_back(curPoints);
-        }
-
-        std::vector<std::string> functionStr(POINT_DIMENSION, "");
-        for (size_t i = 0; i < DEGREE + 1; ++i) {
-            for (size_t j = 0; j < POINT_DIMENSION; ++j) {
-                std::stringstream ss;
-#if ENABLE_DEBUG
-                ss << " + " << std::setw(8) << powerBasisCoeffs[i][j] << " * std::pow(t," << i << ")";
-#else
-                ss << " + " << std::setw(8) << powerBasisCoeffs[i][j] << " * t^" << i;
-#endif  // ENABLE_DEBUG
-                functionStr[j] += ss.str();
-            }
-        }
+        std::vector<maths::PowerBasisPolynomial1D<T>> powerBases = bezier.powerBasisForm();
 
         os << "curve function: \n";
         for (size_t i = 0; i < POINT_DIMENSION; ++i) {
-            os << "dimension number " << i << ": " << functionStr[i] << "\n";
+            os << "dimension number " << i << ": " << powerBases[i] << "\n";
         }
 
         return os;
     }
 
  private:
-    VecPointType initializePointV();
+    /**
+     *  @brief manually-defined cross product function as Eigen's cross product has constraint on dimension.
+     *
+     *  @param v1 first point
+     *  @param v2 second point
+     *  @return PointType
+     */
     PointType cross(const PointType& v1, const PointType& v2) const;
 
  private:
+    //! control points that define characteristic of Bezier curves
     VecPointType _controlPoints;
+    //! degree of the Bezier curve
+    const size_t _degree;
+    //! vector to hold all the (n+1) binomial coefficients of kCn
+    const std::vector<double> _binomialCoeffs;
+
+    T _tolerance;
 };
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-const std::vector<double>
-    Bezier<DEGREE, T, POINT_DIMENSION, Container>::BINOMIAL_COEFFS = maths::binomialCoeffs(DEGREE);
-
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::VecPointType
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::initializePointV()
-{
-    std::vector<double> v(DEGREE + 1, 0);
-    PointType defaultP(v.data());
-    VecPointType pointV(DEGREE + 1, defaultP);
-
-    return pointV;
-}
-
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::PointType
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::cross(const PointType& v1, const PointType& v2) const
+template <typename T, size_t POINT_DIMENSION, class Container>
+typename Bezier<T, POINT_DIMENSION, Container>::PointType
+Bezier<T, POINT_DIMENSION, Container>::cross(const PointType& v1, const PointType& v2) const
 {
     if (POINT_DIMENSION != 3) {
         throw std::out_of_range("this method is for point of 3 dimensions");
@@ -173,33 +247,36 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::cross(const PointType& v1, const 
     return result;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::Bezier() : _controlPoints(initializePointV())
+template <typename T, size_t POINT_DIMENSION, class Container>
+Bezier<T, POINT_DIMENSION, Container>::Bezier(size_t degree, const T tolerance)
+    : _controlPoints(VecPointType(degree + 1, static_cast<PointType>(PointType::Zero()))), _degree(degree),
+      _tolerance(tolerance), _binomialCoeffs(maths::binomialCoeffs(degree))
 {
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::Bezier(const VecPointType& controlPoints) : _controlPoints(controlPoints)
+template <typename T, size_t POINT_DIMENSION, class Container>
+Bezier<T, POINT_DIMENSION, Container>::Bezier(size_t degree, const VecPointType& controlPoints, const T tolerance)
+    : _controlPoints(controlPoints), _degree(degree), _tolerance(tolerance),
+      _binomialCoeffs(maths::binomialCoeffs(degree))
 {
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-const typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::VecPointType&
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::controlPoints() const
-{
-    return this->_controlPoints;
-}
-
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::VecPointType&
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::controlPoints()
+template <typename T, size_t POINT_DIMENSION, class Container>
+const typename Bezier<T, POINT_DIMENSION, Container>::VecPointType&
+Bezier<T, POINT_DIMENSION, Container>::controlPoints() const
 {
     return this->_controlPoints;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::VecPointType
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::trajectory(size_t numPoints, double start, double end)
+template <typename T, size_t POINT_DIMENSION, class Container>
+const std::vector<double>& Bezier<T, POINT_DIMENSION, Container>::binomialCoeffs() const
+{
+    return this->_binomialCoeffs;
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+typename Bezier<T, POINT_DIMENSION, Container>::VecPointType
+Bezier<T, POINT_DIMENSION, Container>::trajectory(size_t numPoints, double start, double end)
 {
     if (numPoints == 0) {
         throw std::out_of_range("Number of points must be more than 0");
@@ -217,29 +294,29 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::trajectory(size_t numPoints, doub
     return v;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-Bezier<DEGREE - 1, T, POINT_DIMENSION, Container> Bezier<DEGREE, T, POINT_DIMENSION, Container>::derivative() const
+template <typename T, size_t POINT_DIMENSION, class Container>
+Bezier<T, POINT_DIMENSION, Container> Bezier<T, POINT_DIMENSION, Container>::derivative() const
 {
-    if (DEGREE == 0) {
+    if (this->_degree == 0) {
         throw std::out_of_range("degree must be more than 0");
     }
 
-    Bezier<DEGREE - 1, T, POINT_DIMENSION, Container> deriB;
-
-    for (size_t i = 0; i < DEGREE; ++i) {
-        deriB.controlPoints()[i] = DEGREE * (this->_controlPoints[i + 1] - this->_controlPoints[i]);
+    VecPointType deriBControlPoints;
+    deriBControlPoints.reserve(this->_degree);
+    for (size_t i = 0; i < this->_degree; ++i) {
+        deriBControlPoints.emplace_back(this->_degree * (this->_controlPoints[i + 1] - this->_controlPoints[i]));
     }
 
-    return deriB;
+    return Bezier<T, POINT_DIMENSION, Container>(this->_degree - 1, deriBControlPoints);
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::Tangent
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::tangent(double t, bool normalize) const
+template <typename T, size_t POINT_DIMENSION, class Container>
+typename Bezier<T, POINT_DIMENSION, Container>::Tangent
+Bezier<T, POINT_DIMENSION, Container>::tangent(double t, bool normalize) const
 {
     Tangent tag;
-    Bezier<DEGREE - 1, T, POINT_DIMENSION, Container> derivative = this->derivative();
-    tag = derivative(t);
+    Bezier<T, POINT_DIMENSION, Container> derivativeBezier = this->derivative();
+    tag = derivativeBezier(t);
     if (normalize) {
         tag.normalize();
     }
@@ -247,9 +324,9 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::tangent(double t, bool normalize)
     return tag;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-typename Bezier<DEGREE, T, POINT_DIMENSION, Container>::Normal
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) const
+template <typename T, size_t POINT_DIMENSION, class Container>
+typename Bezier<T, POINT_DIMENSION, Container>::Normal
+Bezier<T, POINT_DIMENSION, Container>::normal(double t, bool normalize) const
 {
     if (POINT_DIMENSION != 2 && POINT_DIMENSION != 3) {
         throw std::out_of_range("This method is for control points of dimension of 2 or 3");
@@ -264,19 +341,17 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
     }
 
     if (POINT_DIMENSION == 3) {
-        assert(POINT_DIMENSION == 3);
         // Here is the naive implementation for 3d normal
         // Algorithm approach can be Rotation Minimising Frames
         // https://pomax.github.io/bezierinfo/#pointvectors
 
-        Bezier<DEGREE - 2, T, POINT_DIMENSION, Container> secondDeriv = this->derivative().derivative();
+        Bezier<T, POINT_DIMENSION, Container> secondDerivBezier = this->derivative().derivative();
 
-        // cast into PointType type in case PointType inherits from Eigen type
-        PointType b = static_cast<PointType>((tag + secondDeriv(t)).normalized());
+        PointType b = static_cast<PointType>((tag + secondDerivBezier(t)).normalized());
 
         PointType r = static_cast<PointType>(this->cross(b, tag).normalized());
 
-        nor = this->cross(r, tag).normalized();
+        nor = this->cross(r, tag);
 
         if (normalize) {
             nor.normalize();
@@ -286,20 +361,20 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::normal(double t, bool normalize) 
     return nor;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-double Bezier<DEGREE, T, POINT_DIMENSION, Container>::curvature(double t) const
+template <typename T, size_t POINT_DIMENSION, class Container>
+double Bezier<T, POINT_DIMENSION, Container>::curvature(double t) const
 {
-    if (DEGREE < 2 || (POINT_DIMENSION != 2 && POINT_DIMENSION != 3)) {
+    if (this->_degree < 2 || (POINT_DIMENSION != 2 && POINT_DIMENSION != 3)) {
         std::string msg = "This method is for degree more than 1 and";
         msg += " control points for dimension of 2 or 3";
         throw std::out_of_range(msg);
     }
 
-    Bezier<DEGREE - 1, T, POINT_DIMENSION, Container> derivative = this->derivative();
-    Bezier<DEGREE - 2, T, POINT_DIMENSION, Container> secondDeriv = derivative.derivative();
+    Bezier<T, POINT_DIMENSION, Container> derivativeBezier = this->derivative();
+    Bezier<T, POINT_DIMENSION, Container> secondDerivBezier = derivativeBezier.derivative();
 
-    PointType a = derivative(t);
-    PointType b = secondDeriv(t);
+    PointType a = derivativeBezier(t);
+    PointType b = secondDerivBezier(t);
     double curvature;
 
     if (POINT_DIMENSION == 2) {
@@ -313,29 +388,29 @@ double Bezier<DEGREE, T, POINT_DIMENSION, Container>::curvature(double t) const
     return curvature;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-double Bezier<DEGREE, T, POINT_DIMENSION, Container>::operator()(size_t axis, double t)
+template <typename T, size_t POINT_DIMENSION, class Container>
+double Bezier<T, POINT_DIMENSION, Container>::operator()(size_t axis, double t) const
 {
     if (axis >= POINT_DIMENSION) {
         throw std::out_of_range("axis out of range");
     }
 
-    if (this->_controlPoints.size() < DEGREE + 1) {
+    if (this->_controlPoints.size() < this->_degree + 1) {
         throw std::out_of_range("number of control points must be more than degree");
     }
 
-    std::vector<double> polynominalCoeffs = maths::polynomialCoeffs(DEGREE, t);
+    std::vector<double> polynominalCoeffs = maths::polynomialCoeffs(this->_degree, t);
 
     double sum = 0;
-    for (size_t i = 0; i < DEGREE + 1; ++i) {
-        sum += this->_controlPoints[i][axis] * BINOMIAL_COEFFS[i] * polynominalCoeffs[i];
+    for (size_t i = 0; i < this->_degree + 1; ++i) {
+        sum += this->_controlPoints[i][axis] * _binomialCoeffs[i] * polynominalCoeffs[i];
     }
 
     return sum;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-Container Bezier<DEGREE, T, POINT_DIMENSION, Container>::operator()(double t)
+template <typename T, size_t POINT_DIMENSION, class Container>
+Container Bezier<T, POINT_DIMENSION, Container>::operator()(double t) const
 {
     if (this->controlPoints().empty()) {
         throw std::out_of_range("No control points");
@@ -350,11 +425,12 @@ Container Bezier<DEGREE, T, POINT_DIMENSION, Container>::operator()(double t)
     return p;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-bool Bezier<DEGREE, T, POINT_DIMENSION, Container>::fuzzyEquals(PointType val, PointType correctVal)
+template <typename T, size_t POINT_DIMENSION, class Container>
+bool Bezier<T, POINT_DIMENSION, Container>::fuzzyEquals(const PointType& val, const PointType& correctVal,
+                                                        const T epsilon)
 {
     for (size_t i = 0; i < val.size(); ++i) {
-        if (!maths::combinedToleranceEquals(val[i], correctVal[i])) {
+        if (!maths::combinedToleranceEquals(val[i], correctVal[i], epsilon)) {
             return false;
         }
     }
@@ -362,18 +438,16 @@ bool Bezier<DEGREE, T, POINT_DIMENSION, Container>::fuzzyEquals(PointType val, P
     return true;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-std::array<double, (DEGREE + 1) * (DEGREE + 1)> Bezier<DEGREE, T, POINT_DIMENSION, Container>::curveMatrix() const
+template <typename T, size_t POINT_DIMENSION, class Container>
+std::vector<double> Bezier<T, POINT_DIMENSION, Container>::curveMatrix() const
 {
-    std::array<double, (DEGREE + 1) * (DEGREE + 1)> result;
-    const size_t WIDTH = DEGREE + 1, HEIGHT = DEGREE + 1;
+    const size_t WIDTH = this->_degree + 1, HEIGHT = this->_degree + 1;
+    std::vector<double> result(HEIGHT * WIDTH, 0.0);
 
     for (size_t i = 0; i < HEIGHT; ++i) {
         for (size_t j = 0; j < WIDTH; ++j) {
             if (i >= j) {
-                result[i * WIDTH + j] = maths::binomialCoeff(i, j) / maths::binomialCoeff(DEGREE, j);
-            } else {
-                result[i * WIDTH + j] = 0;
+                result[i * WIDTH + j] = maths::binomialCoeff(i, j) / maths::binomialCoeff(this->_degree, j);
             }
         }
     }
@@ -381,20 +455,17 @@ std::array<double, (DEGREE + 1) * (DEGREE + 1)> Bezier<DEGREE, T, POINT_DIMENSIO
     return result;
 }
 
-template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
-std::array<double, (DEGREE + 1) * (DEGREE + 1)>
-Bezier<DEGREE, T, POINT_DIMENSION, Container>::inverseCurveMatrix() const
+template <typename T, size_t POINT_DIMENSION, class Container>
+std::vector<double> Bezier<T, POINT_DIMENSION, Container>::inverseCurveMatrix() const
 {
-    std::array<double, (DEGREE + 1) * (DEGREE + 1)> result;
-    const size_t WIDTH = DEGREE + 1, HEIGHT = DEGREE + 1;
+    const size_t WIDTH = this->_degree + 1, HEIGHT = this->_degree + 1;
+    std::vector<double> result(HEIGHT * WIDTH, 0.0);
 
     for (size_t i = 0; i < HEIGHT; ++i) {
         for (size_t j = 0; j < WIDTH; ++j) {
             if (i >= j) {
                 result[i * WIDTH + j] =
-                    std::pow(-1, i - j) * maths::binomialCoeff(i, j) * maths::binomialCoeff(DEGREE, i);
-            } else {
-                result[i * WIDTH + j] = 0;
+                    std::pow(-1, i - j) * maths::binomialCoeff(i, j) * maths::binomialCoeff(this->_degree, i);
             }
         }
     }
@@ -402,5 +473,102 @@ Bezier<DEGREE, T, POINT_DIMENSION, Container>::inverseCurveMatrix() const
     return result;
 }
 
+template <typename T, size_t POINT_DIMENSION, class Container>
+std::array<std::vector<T>, POINT_DIMENSION>
+Bezier<T, POINT_DIMENSION, Container>::extractDataEachAxis(const VecPointType& vecPointType) const
+{
+    std::array<std::vector<T>, POINT_DIMENSION> result;
+
+    for (size_t i = 0; i < POINT_DIMENSION; ++i) {
+        std::vector<T> curV;
+        curV.reserve(vecPointType.size());
+        std::transform(vecPointType.begin(), vecPointType.end(), std::back_inserter(curV),
+                       [&i](const PointType& p) { return p[i]; });
+        result[i] = curV;
+    }
+
+    return result;
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+std::vector<maths::PowerBasisPolynomial1D<T>> Bezier<T, POINT_DIMENSION, Container>::powerBasisForm() const
+{
+    assert(this->controlPoints().size() == this->_degree + 1);
+
+    const size_t WIDTH = this->_degree + 1, HEIGHT = this->_degree + 1;
+
+    const std::vector<double> curMatrix = this->inverseCurveMatrix();
+
+    VecPointType powerBasisCoeffsVec;
+    powerBasisCoeffsVec.reserve(this->_degree + 1);
+
+    for (size_t i = 0; i < HEIGHT; ++i) {
+        PointType curPoints = static_cast<PointType>(PointType::Zero());
+        for (size_t j = 0; j < WIDTH; ++j) {
+            curPoints += curMatrix[i * WIDTH + j] * this->controlPoints()[j];
+        }
+        powerBasisCoeffsVec.emplace_back(curPoints);
+    }
+
+    auto powerBasisCoeffs = this->extractDataEachAxis(powerBasisCoeffsVec);
+    std::vector<maths::PowerBasisPolynomial1D<T>> result;
+    result.reserve(POINT_DIMENSION);
+
+    for (const auto& powerBasisCoeff : powerBasisCoeffs) {
+        result.emplace_back(maths::PowerBasisPolynomial1D<T>(powerBasisCoeff));
+    }
+
+    return result;
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+double Bezier<T, POINT_DIMENSION, Container>::closestPointToCurve(const PointType& outliner) const
+{
+    // solve P(t) = (Q(t) - outliner).dot(Q'(t)') = 0
+    // Q1(t) = (Q(t) - outliner)
+    // Q2(t) = Q'(t)
+
+    this->_controlPoints;
+    VecPointType q1ControlPoints;
+    q1ControlPoints.reserve(this->_controlPoints.size());
+    std::transform(this->_controlPoints.begin(), this->_controlPoints.end(), std::back_inserter(q1ControlPoints),
+                   [&outliner](const PointType& p) { return p - outliner; });
+
+    Bezier Q1(this->_degree, q1ControlPoints);
+    Bezier Q2 = this->derivative();
+
+    auto q1BasisPowerForm = Q1.powerBasisForm();
+    auto q2BasisPowerForm = Q2.powerBasisForm();
+    maths::PowerBasisPolynomial1D<T> poly({0}, false, this->_tolerance);
+
+    for (size_t i = 0; i < POINT_DIMENSION; ++i) {
+        poly += q1BasisPowerForm[i].multiply(q2BasisPowerForm[i]);
+    }
+
+    maths::SturmSequence<T> ss(poly, this->_tolerance);
+
+    auto roots = ss.solveLocalMinium(this->_tolerance, 1.f - this->_tolerance);
+
+    std::vector<double> shortestVals;
+    std::vector<double> shortestDistances;
+    shortestVals.reserve(roots.size() + 2);
+    shortestDistances.reserve(roots.size() + 2);
+
+    shortestVals.emplace_back(0.0);
+    shortestDistances.emplace_back((this->_controlPoints.front() - outliner).norm());
+
+    for (const auto& root : roots) {
+        shortestVals.emplace_back(root);
+        shortestDistances.emplace_back((this->operator()(root) - outliner).norm());
+    }
+
+    shortestVals.emplace_back(1.f);
+    shortestDistances.emplace_back((this->_controlPoints.back() - outliner).norm());
+
+    int shortestValIndx =
+        std::distance(shortestDistances.begin(), std::min_element(shortestDistances.begin(), shortestDistances.end()));
+
+    return shortestVals[shortestValIndx];
+}
+
 }  // namespace robotics
-#endif /* BEZIER_HPP_ */
