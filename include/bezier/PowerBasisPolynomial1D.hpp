@@ -27,9 +27,14 @@ namespace maths
 template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 {
  public:
+    static constexpr DATA_TYPE TOLERANCE = 10e-7;
+
     using QuotientRemainder = std::pair<PowerBasisPolynomial1D, PowerBasisPolynomial1D>;
 
-    explicit PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized = false);
+    explicit PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized = false,
+                                    const DATA_TYPE tolerance = TOLERANCE);
+
+    PowerBasisPolynomial1D(const PowerBasisPolynomial1D& other, const bool normalized = false);
 
     DATA_TYPE operator()(const DATA_TYPE t) const;
 
@@ -41,6 +46,8 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
     PowerBasisPolynomial1D add(const PowerBasisPolynomial1D& other) const;
 
+    PowerBasisPolynomial1D& operator+=(const PowerBasisPolynomial1D& other);
+
     PowerBasisPolynomial1D multiply(const PowerBasisPolynomial1D& other) const;
 
     PowerBasisPolynomial1D multiply(const DATA_TYPE scalar) const;
@@ -49,7 +56,14 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
     QuotientRemainder divide(const PowerBasisPolynomial1D& other) const;
 
-    void normalize();
+    PowerBasisPolynomial1D operator%(const PowerBasisPolynomial1D& other) const;
+
+    static PowerBasisPolynomial1D gcd(const PowerBasisPolynomial1D& firstPoly,
+                                      const PowerBasisPolynomial1D& secondPoly);
+
+    bool isMonic() const;
+
+    PowerBasisPolynomial1D monicized() const;
 
     friend std::ostream& operator<<(std::ostream& os, const PowerBasisPolynomial1D& polynomial)
     {
@@ -57,7 +71,7 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
         os << "Polynomial function: \n";
         for (size_t i = 0; i < polynomial.coeffs().size(); ++i) {
-            if (fuzzyEquals(polynomial.coeffs()[i], 0.0)) {
+            if (combinedToleranceEquals(polynomial.coeffs()[i], 0.0)) {
                 continue;
             }
 
@@ -73,25 +87,42 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
  private:
     void removeLeadingZeros();
+    void monicize();
 
  private:
     std::vector<DATA_TYPE> _coeffs;
+    DATA_TYPE _tolerance;
 };
 
 template <typename DATA_TYPE>
-PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized)
-    : _coeffs(coeffs)
+PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const std::vector<DATA_TYPE>& coeffs, const bool normalized,
+                                                          const DATA_TYPE tolerance)
+    : _coeffs(coeffs), _tolerance(tolerance)
 {
     assert(this->_coeffs.size() > 0);
     this->removeLeadingZeros();
-    if (normalized) {
-        this->normalize();
+
+    if (normalized && !this->isMonic()) {
+        this->monicize();
+    }
+}
+
+template <typename DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE>::PowerBasisPolynomial1D(const PowerBasisPolynomial1D<DATA_TYPE>& other,
+                                                          const bool normalized)
+{
+    this->_coeffs = other._coeffs;
+    this->_tolerance = other._tolerance;
+
+    if (normalized && !this->isMonic()) {
+        this->monicize();
     }
 }
 
 template <typename DATA_TYPE> DATA_TYPE PowerBasisPolynomial1D<DATA_TYPE>::operator()(const DATA_TYPE t) const
 {
-    DATA_TYPE result = 0.0;
+    DATA_TYPE result = static_cast<DATA_TYPE>(0);
+
     for (size_t i = 0; i < this->_coeffs.size(); ++i) {
         result += this->_coeffs[i] * std::pow(t, i);
     }
@@ -111,7 +142,7 @@ template <typename DATA_TYPE> const size_t PowerBasisPolynomial1D<DATA_TYPE>::de
 
 template <typename DATA_TYPE> bool PowerBasisPolynomial1D<DATA_TYPE>::isZero() const
 {
-    return (this->degree() == 0 && fuzzyEquals(this->_coeffs.front(), 0.0));
+    return (this->degree() == 0 && combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(0)));
 }
 
 template <typename DATA_TYPE>
@@ -128,6 +159,13 @@ PowerBasisPolynomial1D<DATA_TYPE>::add(const PowerBasisPolynomial1D<DATA_TYPE>& 
     }
 
     return PowerBasisPolynomial1D<DATA_TYPE>(biggerDegCoeffs);
+}
+
+template <typename DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE>& PowerBasisPolynomial1D<DATA_TYPE>::operator+=(const PowerBasisPolynomial1D& other)
+{
+    *this = this->add(other);
+    return *this;
 }
 
 template <typename DATA_TYPE = double>
@@ -196,7 +234,7 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     // naive approach for now
     // [source](http://web.cs.iastate.edu/~cs577/handouts/polydivide.pdf)
     if (other.degree() == 0) {
-        if (fuzzyEquals(other._coeffs.front(), 0.0)) {
+        if (combinedToleranceEquals(other._coeffs.front(), 0.0)) {
             throw std::runtime_error("cannot divide by 0");
         } else {
             return std::make_pair(this->multiply(1.0 / other._coeffs.front()),
@@ -217,6 +255,10 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
 
     for (int k = (this->degree() - other.degree()); k >= 0; --k) {
         q[k] = N[other.degree() + k] / D.back();
+        if (combinedToleranceEquals(q[k], static_cast<DATA_TYPE>(0), this->_tolerance)) {
+            q[k] = static_cast<DATA_TYPE>(0);
+        }
+
         for (int j = other.degree() + k - 1; j >= k; --j) {
             N[j] -= q[k] * D[j - k];
         }
@@ -227,8 +269,51 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     return std::make_pair(PowerBasisPolynomial1D(q), PowerBasisPolynomial1D(r));
 }
 
-template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::normalize()
+template <typename DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE>::
+operator%(const PowerBasisPolynomial1D& other) const
 {
+    return this->divide(other).second;
+}
+
+template <typename DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE>
+PowerBasisPolynomial1D<DATA_TYPE>::gcd(const PowerBasisPolynomial1D<DATA_TYPE>& firstPoly,
+                                       const PowerBasisPolynomial1D<DATA_TYPE>& secondPoly)
+{
+    if (firstPoly.degree() < secondPoly.degree()) {
+        return gcd(secondPoly, firstPoly);
+    }
+
+    if (secondPoly.isZero()) {
+        return PowerBasisPolynomial1D<DATA_TYPE>(firstPoly, true);
+    }
+
+    PowerBasisPolynomial1D<DATA_TYPE> remainder = firstPoly % secondPoly;
+
+    return gcd(secondPoly, remainder);
+}
+
+template <typename DATA_TYPE> bool PowerBasisPolynomial1D<DATA_TYPE>::isMonic() const
+{
+    return combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(1));
+}
+
+template <typename DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE>::monicized() const
+{
+    if (this->isMonic()) {
+        return *this;
+    }
+
+    return PowerBasisPolynomial1D(*this, true);
+}
+
+template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::monicize()
+{
+    if (this->isZero()) {
+        return;
+    }
+
     const DATA_TYPE biggestDegCoeffAbs = std::fabs(this->_coeffs.back());
 
     for (auto it = this->_coeffs.begin(); it != this->_coeffs.end(); ++it) {
@@ -238,8 +323,12 @@ template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::normalize(
 
 template <typename DATA_TYPE> void PowerBasisPolynomial1D<DATA_TYPE>::removeLeadingZeros()
 {
-    while (fuzzyEquals(this->_coeffs.back(), 0.0) && this->_coeffs.size() > 1) {
+    while (combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(0), this->_tolerance) &&
+           this->_coeffs.size() > 1) {
         this->_coeffs.pop_back();
+    }
+    if (combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(0), this->_tolerance)) {
+        this->_coeffs.back() = static_cast<DATA_TYPE>(0);
     }
 }
 

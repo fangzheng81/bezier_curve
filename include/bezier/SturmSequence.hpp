@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <cfloat>
 #include <cmath>
 #include <vector>
 
@@ -24,7 +23,9 @@ namespace maths
 template <typename DATA_TYPE = double> class SturmSequence
 {
  public:
-    explicit SturmSequence(const PowerBasisPolynomial1D<DATA_TYPE>& polynomial, const DATA_TYPE tolerance = 0.00001f);
+    static constexpr DATA_TYPE TOLERANCE = 10e-7;
+
+    explicit SturmSequence(const PowerBasisPolynomial1D<DATA_TYPE>& polynomial, const DATA_TYPE tolerance = TOLERANCE);
 
     const std::vector<PowerBasisPolynomial1D<DATA_TYPE>>& sturmSeqs() const;
 
@@ -69,8 +70,16 @@ template <typename DATA_TYPE = double> class SturmSequence
 
 template <typename DATA_TYPE>
 SturmSequence<DATA_TYPE>::SturmSequence(const PowerBasisPolynomial1D<DATA_TYPE>& polynomial, const DATA_TYPE tolerance)
-    : _polynomial(polynomial), _tolerance(tolerance)
+    : _polynomial(polynomial.monicized()), _tolerance(tolerance)
 {
+    PowerBasisPolynomial1D<DATA_TYPE> P0 = polynomial;
+    PowerBasisPolynomial1D<DATA_TYPE> P1 = polynomial.derivative();
+    PowerBasisPolynomial1D<DATA_TYPE> gcdP = PowerBasisPolynomial1D<DATA_TYPE>::gcd(P0, P1);
+
+    if (gcdP.degree() != 0) {
+        this->_polynomial = (P0.divide(gcdP).first).monicized();
+    }
+
     this->_sturmSeqs = this->generateSturmSequences();
     this->_maxDivisions = 1 + static_cast<int>(log2(1.f / this->_tolerance));
 }
@@ -161,7 +170,7 @@ std::vector<DATA_TYPE> SturmSequence<DATA_TYPE>::solveLocalMinium(const DATA_TYP
     realRoots.reserve(foundRoots);
 
     for (size_t i = 0; i < foundRoots; ++i) {
-        DATA_TYPE root = this->solveBisectionLocalMinium(rootIntervals[i].lowerBound, rootIntervals[i].upperBound);
+        auto root = this->solveBisectionLocalMinium(rootIntervals[i].lowerBound, rootIntervals[i].upperBound);
         if (!std::isnan(root)) {
             realRoots.emplace_back(root);
         }
@@ -181,13 +190,13 @@ DATA_TYPE SturmSequence<DATA_TYPE>::solveBisectionLocalMinium(const DATA_TYPE lo
         return NAN;
     }
 
-    // if (lowerVal > 0) {
-    //     return boost::none;
-    // }
+    if (lowerVal > 0) {
+        return NAN;
+    }
 
-    // if (upperVal < 0) {
-    //     return boost::none;
-    // }
+    if (upperVal < 0) {
+        return NAN;
+    }
 
     const int maxIterations = this->_maxDivisions;
     DATA_TYPE bisectionMin = lowerBound;
@@ -220,21 +229,19 @@ std::vector<PowerBasisPolynomial1D<DATA_TYPE>> SturmSequence<DATA_TYPE>::generat
 {
     assert(this->_polynomial.coeffs().size() > 0);
 
-    std::vector<PowerBasisPolynomial1D<DATA_TYPE>> result;
-
-    result.emplace_back(this->_polynomial.coeffs(), true);
-
     if (this->_polynomial.coeffs().size() == 1) {
-        return result;
+        return {this->_polynomial};
     }
 
-    result.emplace_back(this->_polynomial.derivative().coeffs(), true);
+    std::vector<PowerBasisPolynomial1D<DATA_TYPE>> result;
+    result.emplace_back(this->_polynomial);
+    result.emplace_back(this->_polynomial.derivative());
 
     PowerBasisPolynomial1D<DATA_TYPE> remainderPoly =
         (std::prev(std::prev(result.end()))->divide(result.back())).second;
 
     while (!remainderPoly.isZero()) {
-        result.emplace_back(remainderPoly.multiply(-1).coeffs(), true);
+        result.emplace_back(remainderPoly.multiply(-1), true);
         remainderPoly = (std::prev(std::prev(result.end()))->divide(result.back())).second;
     }
 

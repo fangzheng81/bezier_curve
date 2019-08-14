@@ -354,7 +354,7 @@ template <size_t DEGREE, typename T, size_t POINT_DIMENSION, class Container>
 bool Bezier<DEGREE, T, POINT_DIMENSION, Container>::fuzzyEquals(PointType val, PointType correctVal)
 {
     for (size_t i = 0; i < val.size(); ++i) {
-        if (!maths::fuzzyEquals(val[i], correctVal[i])) {
+        if (!maths::combinedToleranceEquals(val[i], correctVal[i])) {
             return false;
         }
     }

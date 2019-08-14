@@ -60,15 +60,16 @@ std::vector<double> binomialCoeffs(size_t n);
 
 std::vector<double> polynomialCoeffs(size_t n, double t);
 
-template <typename T> bool fuzzyEquals(const T val, const T correctVal)
+template <typename T>
+bool combinedToleranceEquals(const T val, const T correctVal, const T epsilon = std::numeric_limits<T>::epsilon())
 {
     const T maxXYOne = std::max({static_cast<T>(1.0f), std::fabs(val), std::fabs(correctVal)});
-    return std::fabs(val - correctVal) <= std::numeric_limits<T>::epsilon() * maxXYOne;
+    return std::fabs(val - correctVal) <= epsilon * maxXYOne;
 }
 
-template <typename T> bool isWithinZeroAndOne(const T x)
+template <typename T> bool isWithinZeroAndOne(const T x, const T epsilon = std::numeric_limits<T>::epsilon())
 {
-    return x >= -std::numeric_limits<T>::epsilon() && x <= (static_cast<T>(1.0f) + std::numeric_limits<T>::epsilon());
+    return x >= -epsilon && x <= (static_cast<T>(1.0f) + epsilon);
 }
 
 template <typename T> constexpr int sgn(const T& a, const T& b) noexcept
