@@ -11,13 +11,13 @@
  *
  */
 
-#include <bezier/Types.hpp>
+#include "bezier/NumericalMaths.hpp"
 
 namespace robotics
 {
 namespace maths
 {
-std::vector<double> binomialCoeffs(size_t n)
+std::vector<double> binomialCoeffs(const size_t n)
 {
     std::vector<double> results(n + 1, 0);
     results.reserve(n + 1);
@@ -33,7 +33,7 @@ std::vector<double> binomialCoeffs(size_t n)
     return results;
 }
 
-std::vector<double> polynomialCoeffs(size_t n, double t)
+std::vector<double> polynomialCoeffs(const size_t n, const double t)
 {
     std::vector<double> results;
     results.reserve(n + 1);

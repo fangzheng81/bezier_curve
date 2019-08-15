@@ -38,7 +38,7 @@ constexpr double FUZZY_EPSILON = 1e-4;
  *  @param k for kCn
  *  @return double
  */
-inline double binomialCoeff(size_t n, size_t k)
+inline double binomialCoeff(const size_t n, const size_t k)
 {
     if (n < k) {
         throw std::out_of_range("n must not be less than k");
@@ -46,28 +46,27 @@ inline double binomialCoeff(size_t n, size_t k)
 
     double res = 1.0;
 
-    if (k > n - k)
-        k = n - k;
+    const size_t optimizedK = (k > n - k) ? n - k : k;
 
-    for (size_t i = 0; i < k; ++i) {
+    for (size_t i = 0; i < optimizedK; ++i) {
         res = (n - i) * res / (i + 1);
     }
 
     return res;
 }
 
-std::vector<double> binomialCoeffs(size_t n);
+std::vector<double> binomialCoeffs(const size_t n);
 
-std::vector<double> polynomialCoeffs(size_t n, double t);
+std::vector<double> polynomialCoeffs(const size_t n, const double t);
 
 template <typename T>
-bool combinedToleranceEquals(const T val, const T correctVal, const T epsilon = std::numeric_limits<T>::epsilon())
+bool combinedToleranceEquals(const T& val, const T& correctVal, const T& epsilon = std::numeric_limits<T>::epsilon())
 {
     const T maxXYOne = std::max({static_cast<T>(1.0f), std::fabs(val), std::fabs(correctVal)});
     return std::fabs(val - correctVal) <= epsilon * maxXYOne;
 }
 
-template <typename T> bool isWithinZeroAndOne(const T x, const T epsilon = std::numeric_limits<T>::epsilon())
+template <typename T> bool isWithinZeroAndOne(const T& x, const T& epsilon = std::numeric_limits<T>::epsilon())
 {
     return x >= -epsilon && x <= (static_cast<T>(1.0f) + epsilon);
 }

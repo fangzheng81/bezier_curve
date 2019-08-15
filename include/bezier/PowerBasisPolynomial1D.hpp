@@ -12,13 +12,14 @@
 #pragma once
 
 #include <algorithm>
-#include <bezier/Types.hpp>
 #include <cassert>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <utility>
 #include <vector>
+
+#include "bezier/NumericalMaths.hpp"
 
 namespace robotics
 {
@@ -71,7 +72,7 @@ template <typename DATA_TYPE = double> class PowerBasisPolynomial1D
 
         os << "Polynomial function: \n";
         for (size_t i = 0; i < polynomial.coeffs().size(); ++i) {
-            if (combinedToleranceEquals(polynomial.coeffs()[i], 0.0)) {
+            if (combinedToleranceEquals(polynomial.coeffs()[i], static_cast<DATA_TYPE>(0), polynomial._tolerance)) {
                 continue;
             }
 
@@ -142,7 +143,8 @@ template <typename DATA_TYPE> const size_t PowerBasisPolynomial1D<DATA_TYPE>::de
 
 template <typename DATA_TYPE> bool PowerBasisPolynomial1D<DATA_TYPE>::isZero() const
 {
-    return (this->degree() == 0 && combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(0)));
+    return (this->degree() == 0 &&
+            combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(0), this->_tolerance));
 }
 
 template <typename DATA_TYPE>
@@ -234,7 +236,7 @@ PowerBasisPolynomial1D<DATA_TYPE>::divide(const PowerBasisPolynomial1D& other) c
     // naive approach for now
     // [source](http://web.cs.iastate.edu/~cs577/handouts/polydivide.pdf)
     if (other.degree() == 0) {
-        if (combinedToleranceEquals(other._coeffs.front(), 0.0)) {
+        if (combinedToleranceEquals(other._coeffs.front(), static_cast<DATA_TYPE>(0), this->_tolerance)) {
             throw std::runtime_error("cannot divide by 0");
         } else {
             return std::make_pair(this->multiply(1.0 / other._coeffs.front()),
@@ -296,7 +298,7 @@ PowerBasisPolynomial1D<DATA_TYPE>::gcd(const PowerBasisPolynomial1D<DATA_TYPE>& 
 
 template <typename DATA_TYPE> bool PowerBasisPolynomial1D<DATA_TYPE>::isMonic() const
 {
-    return combinedToleranceEquals(this->_coeffs.back(), static_cast<DATA_TYPE>(1));
+    return combinedToleranceEquals(std::fabs(this->_coeffs.back()), static_cast<DATA_TYPE>(1), this->_tolerance);
 }
 
 template <typename DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE> PowerBasisPolynomial1D<DATA_TYPE>::monicized() const

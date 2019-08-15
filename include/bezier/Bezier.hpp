@@ -22,8 +22,9 @@
 #include <string>
 #include <vector>
 
+#include "bezier/NumericalMaths.hpp"
 #include "bezier/PowerBasisPolynomial1D.hpp"
-#include "bezier/Types.hpp"
+#include "bezier/SturmSequence.hpp"
 
 #ifdef WITH_DEBUG
 #define ENABLE_DEBUG 1
@@ -69,7 +70,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *
      *  @param degree of the Bezier curve
      */
-    explicit Bezier(size_t degree, const T tolerance = TOLERANCE);
+    explicit Bezier(const size_t degree, const T tolerance = TOLERANCE);
 
     /**
      *  @brief Bezier Constructor
@@ -77,7 +78,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param degree of the Bezier curve
      *  @param controlPoints control points to initialize member variable
      */
-    Bezier(size_t degree, const VecPointType& controlPoints, const T tolerance = TOLERANCE);
+    Bezier(const size_t degree, const VecPointType& controlPoints, const T tolerance = TOLERANCE);
 
     /**
      *  @brief constant getter of control point member variable
@@ -102,7 +103,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param end the upper bound range of t
      *  @return VecPointType
      */
-    VecPointType trajectory(size_t numPoints, double start = 0, double end = 1);
+    VecPointType trajectory(const size_t numPoints, const double start = 0, const double end = 1);
 
     /**
      *  @brief the derivative of current Bezier class
@@ -118,7 +119,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param normalize boolean value to check whether to normalize the result or not
      *  @return Tangent
      */
-    Tangent tangent(double t, bool normalize = true) const;
+    Tangent tangent(const double t, const bool normalize = true) const;
 
     /**
      *  @brief the normal vector at t
@@ -127,7 +128,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param normalize boolean value to check whether to normalize the result or not
      *  @return Normal
      */
-    Normal normal(double t, bool normalize = true) const;
+    Normal normal(const double t, const bool normalize = true) const;
 
     /**
      *  @brief the curvature at t
@@ -135,7 +136,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param t t value
      *  @return double
      */
-    double curvature(double t) const;
+    double curvature(const double t) const;
 
     /**
      *  @brief functor to calculate the value of approximated point on Bezier curve at t on the targeted axis
@@ -144,7 +145,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param t t value
      *  @return double
      */
-    double operator()(size_t axis, double t) const;
+    double operator()(const size_t axis, const double t) const;
 
     /**
      *  @brief functor to calculate the approximated point on Bezier curve at t
@@ -152,7 +153,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      *  @param t t value
      *  @return PointType
      */
-    PointType operator()(double t) const;
+    PointType operator()(const double t) const;
 
     /**
      *  @brief static function to check if two PointTypes are nearly equal
@@ -194,7 +195,7 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
 
     std::vector<maths::PowerBasisPolynomial1D<T>> powerBasisForm() const;
 
-    double closestPointToCurve(const PointType& outliner) const;
+    double closestPointToCurve(const PointType& outliner, const double start = 0, const double end = 1) const;
 
     /**
      *  @brief overloading operator<< to quickly print out the power basis form of bezier curve
@@ -248,14 +249,14 @@ Bezier<T, POINT_DIMENSION, Container>::cross(const PointType& v1, const PointTyp
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-Bezier<T, POINT_DIMENSION, Container>::Bezier(size_t degree, const T tolerance)
+Bezier<T, POINT_DIMENSION, Container>::Bezier(const size_t degree, const T tolerance)
     : _controlPoints(VecPointType(degree + 1, static_cast<PointType>(PointType::Zero()))), _degree(degree),
       _tolerance(tolerance), _binomialCoeffs(maths::binomialCoeffs(degree))
 {
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-Bezier<T, POINT_DIMENSION, Container>::Bezier(size_t degree, const VecPointType& controlPoints, const T tolerance)
+Bezier<T, POINT_DIMENSION, Container>::Bezier(const size_t degree, const VecPointType& controlPoints, const T tolerance)
     : _controlPoints(controlPoints), _degree(degree), _tolerance(tolerance),
       _binomialCoeffs(maths::binomialCoeffs(degree))
 {
@@ -276,7 +277,7 @@ const std::vector<double>& Bezier<T, POINT_DIMENSION, Container>::binomialCoeffs
 
 template <typename T, size_t POINT_DIMENSION, class Container>
 typename Bezier<T, POINT_DIMENSION, Container>::VecPointType
-Bezier<T, POINT_DIMENSION, Container>::trajectory(size_t numPoints, double start, double end)
+Bezier<T, POINT_DIMENSION, Container>::trajectory(const size_t numPoints, const double start, const double end)
 {
     if (numPoints == 0) {
         throw std::out_of_range("Number of points must be more than 0");
@@ -312,7 +313,7 @@ Bezier<T, POINT_DIMENSION, Container> Bezier<T, POINT_DIMENSION, Container>::der
 
 template <typename T, size_t POINT_DIMENSION, class Container>
 typename Bezier<T, POINT_DIMENSION, Container>::Tangent
-Bezier<T, POINT_DIMENSION, Container>::tangent(double t, bool normalize) const
+Bezier<T, POINT_DIMENSION, Container>::tangent(const double t, const bool normalize) const
 {
     Tangent tag;
     Bezier<T, POINT_DIMENSION, Container> derivativeBezier = this->derivative();
@@ -326,7 +327,7 @@ Bezier<T, POINT_DIMENSION, Container>::tangent(double t, bool normalize) const
 
 template <typename T, size_t POINT_DIMENSION, class Container>
 typename Bezier<T, POINT_DIMENSION, Container>::Normal
-Bezier<T, POINT_DIMENSION, Container>::normal(double t, bool normalize) const
+Bezier<T, POINT_DIMENSION, Container>::normal(const double t, const bool normalize) const
 {
     if (POINT_DIMENSION != 2 && POINT_DIMENSION != 3) {
         throw std::out_of_range("This method is for control points of dimension of 2 or 3");
@@ -362,7 +363,7 @@ Bezier<T, POINT_DIMENSION, Container>::normal(double t, bool normalize) const
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-double Bezier<T, POINT_DIMENSION, Container>::curvature(double t) const
+double Bezier<T, POINT_DIMENSION, Container>::curvature(const double t) const
 {
     if (this->_degree < 2 || (POINT_DIMENSION != 2 && POINT_DIMENSION != 3)) {
         std::string msg = "This method is for degree more than 1 and";
@@ -389,7 +390,7 @@ double Bezier<T, POINT_DIMENSION, Container>::curvature(double t) const
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-double Bezier<T, POINT_DIMENSION, Container>::operator()(size_t axis, double t) const
+double Bezier<T, POINT_DIMENSION, Container>::operator()(const size_t axis, const double t) const
 {
     if (axis >= POINT_DIMENSION) {
         throw std::out_of_range("axis out of range");
@@ -410,7 +411,7 @@ double Bezier<T, POINT_DIMENSION, Container>::operator()(size_t axis, double t) 
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-Container Bezier<T, POINT_DIMENSION, Container>::operator()(double t) const
+Container Bezier<T, POINT_DIMENSION, Container>::operator()(const double t) const
 {
     if (this->controlPoints().empty()) {
         throw std::out_of_range("No control points");
@@ -522,7 +523,8 @@ std::vector<maths::PowerBasisPolynomial1D<T>> Bezier<T, POINT_DIMENSION, Contain
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
-double Bezier<T, POINT_DIMENSION, Container>::closestPointToCurve(const PointType& outliner) const
+double Bezier<T, POINT_DIMENSION, Container>::closestPointToCurve(const PointType& outliner, const double start,
+                                                                  const double end) const
 {
     // solve P(t) = (Q(t) - outliner).dot(Q'(t)') = 0
     // Q1(t) = (Q(t) - outliner)
@@ -534,36 +536,36 @@ double Bezier<T, POINT_DIMENSION, Container>::closestPointToCurve(const PointTyp
     std::transform(this->_controlPoints.begin(), this->_controlPoints.end(), std::back_inserter(q1ControlPoints),
                    [&outliner](const PointType& p) { return p - outliner; });
 
-    Bezier Q1(this->_degree, q1ControlPoints);
-    Bezier Q2 = this->derivative();
+    const Bezier Q1(this->_degree, q1ControlPoints);
+    const Bezier Q2 = this->derivative();
 
-    auto q1BasisPowerForm = Q1.powerBasisForm();
-    auto q2BasisPowerForm = Q2.powerBasisForm();
+    const auto q1BasisPowerForm = Q1.powerBasisForm();
+    const auto q2BasisPowerForm = Q2.powerBasisForm();
     maths::PowerBasisPolynomial1D<T> poly({0}, false, this->_tolerance);
 
     for (size_t i = 0; i < POINT_DIMENSION; ++i) {
         poly += q1BasisPowerForm[i].multiply(q2BasisPowerForm[i]);
     }
 
-    maths::SturmSequence<T> ss(poly, this->_tolerance);
+    const maths::SturmSequence<T> ss(poly, this->_tolerance);
 
-    auto roots = ss.solveLocalMinium(this->_tolerance, 1.f - this->_tolerance);
+    const auto roots = ss.solveLocalMinium(this->_tolerance, 1.f - this->_tolerance);
 
     std::vector<double> shortestVals;
     std::vector<double> shortestDistances;
     shortestVals.reserve(roots.size() + 2);
     shortestDistances.reserve(roots.size() + 2);
 
-    shortestVals.emplace_back(0.0);
-    shortestDistances.emplace_back((this->_controlPoints.front() - outliner).norm());
+    shortestVals.emplace_back(start);
+    shortestDistances.emplace_back((this->operator()(start) - outliner).norm());
 
     for (const auto& root : roots) {
         shortestVals.emplace_back(root);
         shortestDistances.emplace_back((this->operator()(root) - outliner).norm());
     }
 
-    shortestVals.emplace_back(1.f);
-    shortestDistances.emplace_back((this->_controlPoints.back() - outliner).norm());
+    shortestVals.emplace_back(end);
+    shortestDistances.emplace_back((this->operator()(end) - outliner).norm());
 
     int shortestValIndx =
         std::distance(shortestDistances.begin(), std::min_element(shortestDistances.begin(), shortestDistances.end()));
