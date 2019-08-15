@@ -48,18 +48,18 @@ class NewPointType : public Eigen::Vector3d
 
 int main(int argc, char* argv[])
 {
-    using EigenBezier = robotics::Bezier<9, double, 3>;
+    using EigenBezier = robotics::Bezier<double, 3>;
     EigenBezier::VecPointType eigenPV{{1, 2, 5}, {2, 6, 3}, {3, 2, 3},  {4, 3, 3}, {5, 13, 5},
                                       {6, 4, 7}, {7, 1, 9}, {8, 2, 11}, {9, 4, 9}, {10, 8, 10}};
 
-    using Bezier = robotics::Bezier<9, double, 3, NewPointType>;
+    using Bezier = robotics::Bezier<double, 3, NewPointType>;
     Bezier::VecPointType pV;
 
     std::transform(eigenPV.begin(), eigenPV.end(), std::back_inserter(pV),
                    [](const EigenBezier::PointType& p) { return Bezier::PointType(p, 10); });
 
-    Bezier::Ptr bezier = std::make_shared<Bezier>(pV);
-    auto coeffV = bezier->BINOMIAL_COEFFS;
+    Bezier::Ptr bezier = std::make_shared<Bezier>(9, pV);
+    auto coeffV = bezier->binomialCoeffs();
 
     const Bezier::Tangent tan = bezier->tangent(0.7);
     const Bezier::Normal nor = bezier->normal(0.7);

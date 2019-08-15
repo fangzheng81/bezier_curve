@@ -1,19 +1,20 @@
 add_executable(
   unit_tests
-  TestBezier.cpp
+     TestBezier.cpp
+     TestPolynomial1D.cpp
 )
 
 target_link_libraries(
   unit_tests
   PUBLIC
-  bezier
+     ${PROJECT_TARGET_LIB_NAME}
   PRIVATE
-  gtest_main
+     gtest_main
 )
 
 add_test(
   NAME
-  unit_tests
+     unit_tests
   COMMAND
-  $<TARGET_FILE:unit_tests>
+     $<TARGET_FILE:unit_tests>
 )
