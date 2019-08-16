@@ -12,21 +12,24 @@ branches:
   only:
     - master
 
-before_install:
-  - readonly PARENT_DIR=$(pwd)
-  # build from source latest eigen
-  - git clone https://github.com/eigenteam/eigen-git-mirror.git
-  - cd eigen-git-mirror
-  - mkdir build && cd build && cmake ../ && make && sudo make install
-
-# install:
-
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
       - cmake
+      - g++-6
+
+env:
+  - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+
+before_install:
+  - readonly PARENT_DIR=$(pwd)
+  - eval "${MATRIX_EVAL}"
+  # build from source latest eigen
+  - git clone https://github.com/eigenteam/eigen-git-mirror.git
+  - cd eigen-git-mirror
+  - mkdir build && cd build && cmake ../ && make && sudo make install
 
 script:
   - cd ${PARENT_DIR}
