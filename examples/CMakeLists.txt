@@ -1,29 +1,28 @@
+include(matplotlibcpp)
+__fetch_matplotlibcpp(
+  "${PROJECT_SOURCE_DIR}/cmake"
+  "${PROJECT_BINARY_DIR}/matplotlibcpp"
+)
+
 list(APPEND EXAMPLES
   "Ex2DPoints"
   "Ex3DPoints"
   "ExUserDefinedPointType"
 )
 
-list(APPEND USE_LIBRARIES
-  bezier
+include(example_utility)
+
+list(APPEND PUBLIC_LIBS
+  ${PROJECT_TARGET_LIB_NAME}
 )
 
-function(__build_example example_name use_libraries)
-  list(LENGTH use_libraries LIBRARIES_LENGTH)
-
-  add_executable(
-    ${example_name}
-    ${CMAKE_CURRENT_LIST_DIR}/${example_name}.cpp
-  )
-
-  if (LIBRARIES_LENGTH GREATER 0)
-    target_link_libraries(
-      ${example_name}
-      ${use_libraries}
-    )
-  endif()
-endfunction(__build_example example_name use_libraries)
+list(APPEND PRIVATE_LIBS
+)
 
 foreach(EXAMPLE ${EXAMPLES})
-  __build_example(${EXAMPLE} ${USE_LIBRARIES})
+  __build_example(
+    ${EXAMPLE}
+    "${PUBLIC_LIBS}"
+    "${PRIVATE_LIBS}"
+  )
 endforeach(EXAMPLE)
