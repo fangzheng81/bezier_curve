@@ -8,6 +8,7 @@ list(APPEND EXAMPLES
   "Ex2DPoints"
   "Ex3DPoints"
   "ExUserDefinedPointType"
+  "ExPolynomial1D"
 )
 
 include(example_utility)

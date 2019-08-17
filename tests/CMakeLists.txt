@@ -2,13 +2,14 @@ if (NOT TARGET gtest)
 include(googletest)
 __fetch_googletest(
     ${PROJECT_SOURCE_DIR}/cmake
-    ${PROJECT_BINARY_DIR}/googletest
+    ${PROJECT_BINARY_DIR}/${PROJECT_TARGET_LIB_NAME}_googletest
 )
 endif()
 
 add_executable(
   ${PROJECT_TARGET_LIB_NAME}_unit_tests
   TestBezier.cpp
+  TestPolynomial1D.cpp
 )
 
 target_link_libraries(

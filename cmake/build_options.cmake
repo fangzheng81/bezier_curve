@@ -14,8 +14,11 @@ if(WITH_DEBUG)
   )
 endif(WITH_DEBUG)
 
-enable_testing()
-add_subdirectory(tests)
+option(WITH_GTEST "Enable gtest" ON)
+if(WITH_GTEST)
+  enable_testing()
+  add_subdirectory(tests)
+endif(WITH_GTEST)
 
 option(BUILD_DOC "Build documentation" ON)
 if(BUILD_DOC)

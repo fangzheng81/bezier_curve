@@ -17,7 +17,7 @@
 
 int main(int argc, char* argv[])
 {
-    using Bezier = robotics::Bezier<9, double, 3>;
+    using Bezier = robotics::Bezier<double, 3>;
     Bezier::PointType p1(1, 5, 2);
     Bezier::PointType p2(2, 6, 3);
     Bezier::PointType p3(3, 2, 3);
@@ -43,8 +43,8 @@ int main(int argc, char* argv[])
     pV.emplace_back(p9);
     pV.emplace_back(p10);
 
-    Bezier::Ptr bezier = std::make_shared<Bezier>(pV);
-    auto coeffV = bezier->BINOMIAL_COEFFS;
+    Bezier::Ptr bezier = std::make_shared<Bezier>(9, pV);
+    auto coeffV = bezier->binomialCoeffs();
 
     const Bezier::Tangent tan = bezier->tangent(0.7);
     const Bezier::Normal nor = bezier->normal(0.7);
