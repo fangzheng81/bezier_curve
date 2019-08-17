@@ -1,9 +1,17 @@
+include(matplotlibcpp)
+__fetch_matplotlibcpp(
+  "${PROJECT_SOURCE_DIR}/cmake"
+  "${PROJECT_BINARY_DIR}/matplotlibcpp"
+)
+
 list(APPEND EXAMPLES
   "Ex2DPoints"
   "Ex3DPoints"
   "ExUserDefinedPointType"
   "ExPolynomial1D"
 )
+
+include(example_utility)
 
 list(APPEND PUBLIC_LIBS
   ${PROJECT_TARGET_LIB_NAME}

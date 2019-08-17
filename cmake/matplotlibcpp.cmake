@@ -1,11 +1,11 @@
-function(__fetch_googletest download_module_path download_root)
-  set(GOOGLETEST_DOWNLOAD_ROOT ${download_root})
+function(__fetch_matplotlibcpp download_module_path download_root)
+  set(MATPLOTLIBCPP_DOWNLOAD_ROOT ${download_root})
   configure_file(
-    ${download_module_path}/googletest-download.cmake
+    ${download_module_path}/matplotlibcpp-download.cmake
     ${download_root}/CMakeLists.txt
     @ONLY
   )
-  unset(GOOGLETEST_DOWNLOAD_ROOT)
+  unset(MATPLOTLIBCPP_DOWNLOAD_ROOT)
 
   execute_process(
     COMMAND
@@ -21,7 +21,7 @@ function(__fetch_googletest download_module_path download_root)
   )
 
   add_subdirectory(
-    ${download_root}/googletest-src
-    ${download_root}/googletest-build
+    ${download_root}/matplotlibcpp-src
+    ${download_root}/matplotlibcpp-build
   )
 endfunction()
