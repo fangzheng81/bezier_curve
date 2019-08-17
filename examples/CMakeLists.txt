@@ -9,6 +9,7 @@ list(APPEND EXAMPLES
   "Ex3DPoints"
   "ExUserDefinedPointType"
   "ExPolynomial1D"
+  "ClosestPointsToCurve"
 )
 
 include(example_utility)

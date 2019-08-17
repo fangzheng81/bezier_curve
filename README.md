@@ -47,5 +47,23 @@ Example for 9-degree bezier curve of the following 3d control points:
     <img src="./docs/images/3dpoints.png", width="640">
 </p>
 
+### point projection from an external point to bezier curve ###
+
+In this function, I implemented the algorithm presented in the following paper:
+
+```
+Xiao-Diao Chen, Yin Zhou, Zhenyu Shu, Hua Su, Jean-Claude Paul. Improved Algebraic Algorithm
+On Point Projection For Bézier Curves. Proceedings of the Second International Multi-Symposiums
+on Computer and Computational Sciences (IMSCCS 2007), The University of Iowa, Iowa City, Iowa,
+USA, Aug 2007, Iowa, United States. pp.158-163, ff10.1109/IMSCCS.2007.17ff. ffinria-00518379f
+```
+
+[Source Code](./examples/ClosestPointsToCurve.cpp)
+
+<p align="center">
+    <img src="./docs/images/closestpoint.png", width="640">
+</p>
+
 ## Acknowledgement ##
-- This library is inspired by the following [Bezier library](https://github.com/oysteinmyrmo/bezier), which supports only 2D space (as of 21st June, 2019)
+- This library is inspired by the following [Bezier library](https://github.com/oysteinmyrmo/bezier), which supports only 2D space (as of 21st June, 2019).
+- I partly reused the code introduced in ```https://computingandrecording.wordpress.com/2017/03/20/closest-point-to-a-cubic-spline/``` for the functionality of point projection.
