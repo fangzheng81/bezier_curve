@@ -43,6 +43,7 @@ script:
   - cd build
   - |
     cmake \
+      -DWITH_GTEST=ON \
       -DBUILD_EXAMPLES=ON \
       -DPYTHON_EXECUTABLE=$(python-config --prefix)/bin/python3.6 \
       -DPYTHON_LIBRARY=$(python-config --prefix)/lib/libpython3.6m.so \
