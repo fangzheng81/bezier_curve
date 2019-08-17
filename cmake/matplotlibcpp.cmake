@@ -24,4 +24,5 @@ function(__fetch_matplotlibcpp download_module_path download_root)
     ${download_root}/matplotlibcpp-src
     ${download_root}/matplotlibcpp-build
   )
+  message(STATUS "${download_root}/matplotlibcpp-src")
 endfunction()

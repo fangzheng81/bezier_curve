@@ -18,8 +18,11 @@ cmake ../ && cmake --build .
 
 ### Build Options ###
  - WITH_DEBUG=ON/OFF(default: OFF) : whether to enable debug
+ - WITH_GTEST=ON/OFF(default: OFF) : whether to enable gtest
  - BUILD_EXAMPLES=ON/OFF(default: OFF) : whether to enable build examples
  - BUILD_DOC=ON/OFF(default: ON) : whether to build doc (by doxygen) or not
+ - WITH_VISUALIZATION=ON/OFF(default: OFF) : whether to build examples with visualization (currently used [matplotlib_cpp](https://github.com/xmba15/Another_MatplotlibCpp.git) for visualization)
+
 ## General Usage ##
 See [Examples](examples)
 

@@ -1,7 +1,7 @@
 include(matplotlibcpp)
 __fetch_matplotlibcpp(
   "${PROJECT_SOURCE_DIR}/cmake"
-  "${PROJECT_BINARY_DIR}/matplotlibcpp"
+  "${PROJECT_BINARY_DIR}/${PROJECT_TARGET_LIB_NAME}_matplotlibcpp"
 )
 
 list(APPEND EXAMPLES
@@ -15,6 +15,7 @@ include(example_utility)
 
 list(APPEND PUBLIC_LIBS
   ${PROJECT_TARGET_LIB_NAME}
+  matplotlib_cpp
 )
 
 list(APPEND PRIVATE_LIBS
