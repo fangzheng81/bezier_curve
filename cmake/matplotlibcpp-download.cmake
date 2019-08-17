@@ -8,7 +8,7 @@ ExternalProject_Add(
   SOURCE_DIR "@MATPLOTLIBCPP_DOWNLOAD_ROOT@/matplotlibcpp-src"
   BINARY_DIR "@MATPLOTLIBCPP_DOWNLOAD_ROOT@/matplotlibcpp-build"
   GIT_REPOSITORY
-    git@github.com:xmba15/Another_MatplotlibCpp.git
+    https://github.com/xmba15/Another_MatplotlibCpp.git
   GIT_TAG
     master
   CONFIGURE_COMMAND ""
