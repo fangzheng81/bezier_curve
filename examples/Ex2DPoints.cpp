@@ -11,9 +11,19 @@
  *
  */
 
-#include <bezier/Bezier.hpp>
 #include <iostream>
 #include <memory>
+#include <string>
+
+#include <bezier/Bezier.hpp>
+
+#ifndef WITH_VISUALIZATION
+#define ENABLE_VISUALIZATION 1
+#endif  // WITH_VISUALIZATION
+
+#if ENABLE_VISUALIZATION
+#include <matplotlib_cpp/MatplotlibCpp.hpp>
+#endif  // ENABLE_VISUALIZATION
 
 int main(int argc, char* argv[])
 {
@@ -25,15 +35,7 @@ int main(int argc, char* argv[])
     Bezier::PointType p5(75.34, 46.97);
     Bezier::PointType p6(65.33, 86.25);
 
-    Bezier::VecPointType pV;
-    pV.reserve(6);
-
-    pV.emplace_back(p1);
-    pV.emplace_back(p2);
-    pV.emplace_back(p3);
-    pV.emplace_back(p4);
-    pV.emplace_back(p5);
-    pV.emplace_back(p6);
+    Bezier::VecPointType pV{p1, p2, p3, p4, p5, p6};
 
     Bezier::Ptr bezier = std::make_shared<Bezier>(5, pV);
     auto coeffV = bezier->binomialCoeffs();
@@ -60,5 +62,43 @@ int main(int argc, char* argv[])
 
     std::cout << *bezier << "\n";
 
+#if ENABLE_VISUALIZATION
+    // import modules of matplotlib library
+    pe::vis::Matplotlib mpllib;
+
+    // check if the modules are imported successully or not
+    if (!mpllib.imported()) {
+        std::cout << "Failed to import matplotlib library\n";
+        exit(EXIT_FAILURE);
+    }
+
+    const auto xyS = bezier->extractDataEachAxis(pV);
+    const auto xyTrajectoryS = bezier->extractDataEachAxis(trajectory);
+
+    mpllib.plot(xyS[0], xyS[1],
+                {
+                    {"label", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("control points")},
+                    {"color", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("g")},
+                    {"linestyle", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("--")},
+                });
+
+    mpllib.scatter(xyS[0], xyS[1]);
+
+    mpllib.plot(xyTrajectoryS[0], xyTrajectoryS[1],
+                {
+                    {"label", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("approximated bezier curve")},
+                    {"color", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("r")},
+                    {"linestyle", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("--")},
+                });
+
+    mpllib.legend();
+
+    mpllib.grid();
+
+    mpllib.savefig("2dpoints.png");
+
+    mpllib.show();
+
+#endif  // ENABLE_VISUALIZATION
     return 0;
 }

@@ -1,6 +1,4 @@
 option(BUILD_EXAMPLES "Option whether to build examples" OFF)
-option(BUILD_VISUALIZATION "Option whether to build examples with visualization" ON)
-
 if(${BUILD_EXAMPLES})
   message(STATUS "Also build examples")
   add_subdirectory(${PROJECT_SOURCE_DIR}/examples)
@@ -14,11 +12,19 @@ if(WITH_DEBUG)
   )
 endif(WITH_DEBUG)
 
-option(WITH_GTEST "Enable gtest" ON)
+option(WITH_GTEST "Enable gtest" OFF)
 if(WITH_GTEST)
   enable_testing()
   add_subdirectory(tests)
 endif(WITH_GTEST)
+
+option(WITH_VISUALIZATION "Option whether to build examples with visualization" OFF)
+if(WITH_VISUALIZATION)
+  target_compile_definitions(${PROJECT_TARGET_LIB_NAME}
+    PUBLIC
+    WITH_DEBUG
+  )
+endif(WITH_VISUALIZATION)
 
 option(BUILD_DOC "Build documentation" ON)
 if(BUILD_DOC)

@@ -11,9 +11,18 @@
  *
  */
 
-#include <bezier/Bezier.hpp>
 #include <iostream>
 #include <memory>
+
+#include <bezier/Bezier.hpp>
+
+#ifndef WITH_VISUALIZATION
+#define ENABLE_VISUALIZATION 1
+#endif  // WITH_VISUALIZATION
+
+#if ENABLE_VISUALIZATION
+#include <matplotlib_cpp/MatplotlibCpp.hpp>
+#endif  // ENABLE_VISUALIZATION
 
 int main(int argc, char* argv[])
 {
@@ -29,19 +38,7 @@ int main(int argc, char* argv[])
     Bezier::PointType p9(9, 4, 9);
     Bezier::PointType p10(10, 8, 10);
 
-    Bezier::VecPointType pV;
-    pV.reserve(10);
-
-    pV.emplace_back(p1);
-    pV.emplace_back(p2);
-    pV.emplace_back(p3);
-    pV.emplace_back(p4);
-    pV.emplace_back(p5);
-    pV.emplace_back(p6);
-    pV.emplace_back(p7);
-    pV.emplace_back(p8);
-    pV.emplace_back(p9);
-    pV.emplace_back(p10);
+    Bezier::VecPointType pV{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10};
 
     Bezier::Ptr bezier = std::make_shared<Bezier>(9, pV);
     auto coeffV = bezier->binomialCoeffs();
@@ -67,6 +64,46 @@ int main(int argc, char* argv[])
     }
 
     std::cout << *bezier << "\n";
+
+#if ENABLE_VISUALIZATION
+    // import modules of matplotlib library
+    pe::vis::Matplotlib mpllib;
+
+    // check if the modules are imported successully or not
+    if (!mpllib.imported()) {
+        std::cout << "Failed to import matplotlib library\n";
+        exit(EXIT_FAILURE);
+    }
+
+    const auto xyzS = bezier->extractDataEachAxis(pV);
+
+    mpllib.initializeAxes3D();
+
+    mpllib.plotAxes3D(
+        xyzS[0], xyzS[1], xyzS[2],
+        {
+            {"label", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("control points")},
+            {"color", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("g")},
+            {"linestyle", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("--")},
+        });
+    mpllib.scatterAxes3D(xyzS[0], xyzS[1], xyzS[2]);
+
+    const auto xyzTrajectoryS = bezier->extractDataEachAxis(trajectory);
+
+    mpllib.plotAxes3D(
+        xyzTrajectoryS[0], xyzTrajectoryS[1], xyzTrajectoryS[2],
+        {
+            {"label", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("approximated bezier curve")},
+            {"color", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("r")},
+            {"linestyle", pe::vis::Matplotlib::createAnyBaseMapData<std::string>("--")},
+        });
+
+    mpllib.legend();
+
+    mpllib.savefig("3dpoints.png");
+
+    mpllib.show();
+#endif  // ENABLE_VISUALIZATION
 
     return 0;
 }
