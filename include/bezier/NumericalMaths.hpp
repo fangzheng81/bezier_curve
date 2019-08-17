@@ -13,8 +13,7 @@
  *
  */
 
-#ifndef TYPES_HPP_
-#define TYPES_HPP_
+#pragma once
 
 #include <algorithm>
 #include <cmath>
@@ -83,5 +82,3 @@ template <typename T> constexpr int sgn(const T& a) noexcept
 
 }  // namespace maths
 }  // namespace robotics
-
-#endif /* TYPES_HPP_ */
