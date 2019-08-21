@@ -63,6 +63,8 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
     //! shared pointer of Bezier type
     using Ptr = std::shared_ptr<Bezier>;
 
+    using BoundingBox = std::array<PointType, 2>;
+
     /**
      *  @brief Bezier Constructor
      *
@@ -196,6 +198,8 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
     std::vector<maths::PowerBasisPolynomial1D<T>> powerBasisForm() const;
 
     double closestPointToCurve(const PointType& outliner, const double start = 0, const double end = 1) const;
+
+    BoundingBox estimateBoundingBox(double start = 0, double end = 1) const;
 
     /**
      *  @brief overloading operator<< to quickly print out the power basis form of bezier curve
@@ -571,6 +575,35 @@ double Bezier<T, POINT_DIMENSION, Container>::closestPointToCurve(const PointTyp
         std::distance(shortestDistances.begin(), std::min_element(shortestDistances.begin(), shortestDistances.end()));
 
     return shortestVals[shortestValIndx];
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+typename Bezier<T, POINT_DIMENSION, Container>::BoundingBox
+Bezier<T, POINT_DIMENSION, Container>::estimateBoundingBox(double start, double end) const
+{
+    auto derivPowerBases = this->derivative().powerBasisForm();
+    PointType topLeft, bottomRight;
+
+    for (size_t i = 0; i < POINT_DIMENSION; ++i) {
+        const maths::PowerBasisPolynomial1D<T> axisPoly = derivPowerBases[i];
+        const maths::SturmSequence<T> ss(axisPoly, this->_tolerance);
+        const auto roots = ss.solve(start + this->_tolerance, end - this->_tolerance);
+        std::vector<double> axisVals;
+        axisVals.reserve(roots.size() + 2);
+
+        axisVals.emplace_back(this->operator()(i, start));
+
+        std::transform(roots.begin(), roots.end(), std::back_inserter(axisVals),
+                       [&i, this](const T val) { return this->operator()(i, val); });
+
+        axisVals.emplace_back(this->operator()(i, end));
+
+        const auto minMax = std::minmax_element(axisVals.begin(), axisVals.end());
+        topLeft[i] = *minMax.first;
+        bottomRight[i] = *minMax.second;
+    }
+
+    return {topLeft, bottomRight};
 }
 
 }  // namespace robotics

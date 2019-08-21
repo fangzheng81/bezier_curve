@@ -10,6 +10,7 @@ list(APPEND EXAMPLES
   "ExUserDefinedPointType"
   "ExPolynomial1D"
   "ClosestPointsToCurve"
+  "ExBoundingBox"
 )
 
 include(example_utility)
