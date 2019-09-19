@@ -82,6 +82,8 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
      */
     Bezier(const size_t degree, const VecPointType& controlPoints, const T tolerance = TOLERANCE);
 
+    explicit Bezier(const VecPointType& controlPoints, const T tolerance = TOLERANCE);
+
     /**
      *  @brief constant getter of control point member variable
      *
@@ -201,6 +203,8 @@ template <typename T, size_t POINT_DIMENSION, class Container = Eigen::Matrix<T,
 
     BoundingBox estimateBoundingBox(double start = 0, double end = 1) const;
 
+    double approximateLength(const VecPointType& trajectory) const;
+
     /**
      *  @brief overloading operator<< to quickly print out the power basis form of bezier curve
      *
@@ -264,6 +268,14 @@ Bezier<T, POINT_DIMENSION, Container>::Bezier(const size_t degree, const VecPoin
     : _controlPoints(controlPoints), _degree(degree), _tolerance(tolerance),
       _binomialCoeffs(maths::binomialCoeffs(degree))
 {
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+Bezier<T, POINT_DIMENSION, Container>::Bezier(const VecPointType& controlPoints, const T tolerance)
+    : _controlPoints(controlPoints), _degree(controlPoints.size() - 1), _tolerance(tolerance),
+      _binomialCoeffs(maths::binomialCoeffs(controlPoints.size() - 1))
+{
+    assert(controlPoints.size() > 0);
 }
 
 template <typename T, size_t POINT_DIMENSION, class Container>
@@ -604,6 +616,17 @@ Bezier<T, POINT_DIMENSION, Container>::estimateBoundingBox(double start, double 
     }
 
     return {topLeft, bottomRight};
+}
+
+template <typename T, size_t POINT_DIMENSION, class Container>
+double Bezier<T, POINT_DIMENSION, Container>::approximateLength(const VecPointType& trajectory) const
+{
+    double length = 0;
+    for (auto it = trajectory.cbegin(); it != trajectory.cend() - 1; ++it) {
+        length += (*it - *std::next(it)).norm();
+    }
+
+    return length;
 }
 
 }  // namespace robotics

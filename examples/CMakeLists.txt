@@ -11,6 +11,7 @@ list(APPEND EXAMPLES
   "ExPolynomial1D"
   "ClosestPointsToCurve"
   "ExBoundingBox"
+  "ExApproximateLength"
 )
 
 include(example_utility)
